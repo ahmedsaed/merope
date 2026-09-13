@@ -19,6 +19,8 @@ The environment needed to build the rest of this without supervision.
 - `/styleguide` — every token, both themes, one page.
 - Verification: typecheck, lint, format, content check, unit tests, e2e, and a
   screenshot harness. All wired into CI.
+- Every lore fact checked against published sources and written up with
+  citations in `docs/LORE.md`. Three claims in the first draft were wrong.
 
 **Deliberately not done yet:** the actual design. Phase 0's pages are
 scaffolding that proves the pipeline works.
@@ -28,6 +30,10 @@ scaffolding that proves the pipeline works.
 ## Phase 1 — Identity & design system
 
 The visual language, reviewed in isolation before any page depends on it.
+
+**Open questions to settle first:** whether the wordmark needs a mark at all;
+how far the plate furniture goes before it becomes costume; and whether `plate`
+or `sky` is the true default for a first-time visitor.
 
 - Wordmark. Merope set in Newsreader is already close; the question is whether
   it needs a mark at all, and if so whether it is the plate's registration

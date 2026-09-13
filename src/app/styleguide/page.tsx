@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { ThemeToggle } from '@/design/components/ThemeToggle';
-import { MAGNITUDE_CLASSES, NEBULA, STAR, SUPERCOMPUTER } from '@/lib/merope';
+import { MAGNITUDE_CLASSES, NEBULA, PLATE, STAR, SUPERCOMPUTER } from '@/lib/merope';
 
 export const metadata: Metadata = {
   title: 'Styleguide',
@@ -53,7 +53,8 @@ export default function Styleguide() {
           <h1 className="text-title font-light">Styleguide</h1>
           <p className="text-ink-muted mt-3 max-w-(--measure-prose)">
             Every token, both themes, one page. Flip the toggle and check that nothing here needs a
-            second set of rules to survive the change.
+            second set of rules to survive the change. Facts in section 05 are sourced in
+            docs/LORE.md.
           </p>
         </div>
         <ThemeToggle />
@@ -135,11 +136,20 @@ export default function Styleguide() {
             {[
               ['Designation', `${STAR.designation} · ${STAR.catalog.hd}`],
               ['Coordinates', `${STAR.ra.display} ${STAR.dec.display}`],
-              ['Magnitude', `${STAR.magnitude} — fourth brightest of the seven`],
+              [
+                'Magnitude',
+                `${STAR.magnitude} — ${STAR.rankAmongSisters}th brightest of the seven, not the faintest`,
+              ],
+              ['Distance', `${STAR.distanceLightYears} ± ${STAR.distanceUncertaintyLightYears} ly`],
               ['Spectrum', `${STAR.spectralType} — where the accent comes from`],
               ['Nebula', `${NEBULA.ngc} — ${NEBULA.names.join(' / ')}`],
+              [
+                'Interloper',
+                `${NEBULA.knot.designation} — ${NEBULA.knot.distanceAu} AU from the star`,
+              ],
+              ['Plate', `${PLATE.date} — ${PLATE.revealed}`],
+              ['Spare parts', `Built from ${SUPERCOMPUTER.builtFrom} — ${SUPERCOMPUTER.thesis}`],
               ['Thesis', NEBULA.thesis],
-              ['Spare parts', `${SUPERCOMPUTER.builtFrom} → ${SUPERCOMPUTER.thesis}`],
             ].map(([k, v]) => (
               <div key={k} className="contents">
                 <dt className="annotation pt-1">{k}</dt>

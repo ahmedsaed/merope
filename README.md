@@ -54,5 +54,7 @@ in `pnpm dev` and out of the built site.
 
 - [`docs/BRAND.md`](docs/BRAND.md) — the name, the direction, the easter eggs,
   and the failure mode to avoid.
+- [`docs/LORE.md`](docs/LORE.md) — every astronomical claim the site makes, with
+  sources, and the ones that turned out to be false.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — phases and decisions on record.
 - [`AGENTS.md`](AGENTS.md) — conventions and traps already hit.

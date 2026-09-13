@@ -17,9 +17,10 @@ camera, software — and that everything after it is refinement.
 
 ## Why a plate
 
-Merope is the faint one. It is the sister you have to look for, and the star
-whose only claim on the nebula around it is that it happens to be lighting
-dust it did not make.
+Merope is the sister with a story about dimming — not the faintest of the seven,
+which is a thing people repeat and get wrong, but the one who had a reason to be
+modest. She is also the star whose only claim on the nebula around her is that
+she happens to be lighting dust she did not make.
 
 ```ts
 const thesis = 'The star is not the point. What it lights up is.';

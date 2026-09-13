@@ -13,8 +13,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 The landing page and content home for the Merope software studio (merope.dev).
 Individual projects live on subdomains; this repo is the front door.
 
-Read `docs/BRAND.md` before touching design, and `docs/ROADMAP.md` before
-deciding something is in or out of scope.
+Read `docs/BRAND.md` before touching design, `docs/LORE.md` before writing any
+astronomical claim, and `docs/ROADMAP.md` before deciding something is in or out
+of scope.
 
 ## Non-negotiables
 
@@ -27,9 +28,12 @@ deciding something is in or out of scope.
 - **Two accents only.** `--accent` is the star's own colour; `--mark` is the
   grease pencil and means _this needs attention_ — focus rings, breaking
   changes, nothing else.
-- **Lore must be true.** Every astronomical fact comes from `src/lib/merope.ts`.
-  Values marked `@unverified` are not to be presented as fact on a public page
-  until checked.
+- **Lore must be true.** Every astronomical fact comes from `src/lib/merope.ts`,
+  and every value in it is cited in `docs/LORE.md`. Do not add a fact to either
+  without a source. Two claims that popular astronomy writing repeats are false
+  and have already been caught here: Merope is **not** the faintest Pleiad (she
+  is fourth-brightest of the seven), and the NASA supercomputer was built from
+  **Pleiades** nodes, not Columbia.
 
 ## Layout
 
@@ -39,7 +43,8 @@ src/design/     The design system. Kept self-contained so Phase 6 can lift it
 src/lib/        merope.ts (lore), site.ts (config), content/ (build-time loader)
 content/        notes/, changelog/, projects/ — markdown with validated frontmatter
 scripts/        shoot.ts (screenshots), check-content.ts, static-server.ts
-docs/           BRAND.md, ROADMAP.md
+docs/           BRAND.md (direction), LORE.md (verified facts + sources),
+                ROADMAP.md (phases and decisions)
 ```
 
 ## Verifying work

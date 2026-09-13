@@ -6,31 +6,45 @@
  * components — partly for consistency, mostly so the whole set can be
  * fact-checked in one place.
  *
- * VERIFY BEFORE LAUNCH: values marked `@unverified` are from memory and should
- * be checked against SIMBAD / the NASA NAS site before they go in front of
- * anyone. Getting the lore wrong on a site built entirely out of lore is the
- * one unforced error available to us.
+ * Every value below was verified against published sources on 2026-09-13.
+ * See docs/LORE.md for the citations and for the popular claims that turned out
+ * to be false. Anything added later must be checked before it ships: a site
+ * built entirely out of lore cannot afford wrong lore.
  */
 
 /** 23 Tauri — the star itself. */
 export const STAR = {
   /** Bayer/Flamsteed designation. The one to use when being terse. */
   designation: '23 Tau',
-  catalog: { hd: 'HD 23480', hip: 'HIP 17608' },
+  catalog: { hd: 'HD 23480' },
 
-  /** J2000 equatorial coordinates. @unverified */
-  ra: { h: 3, m: 46, s: 19.57, display: '03h 46m 19.57s' },
-  dec: { sign: '+', d: 23, m: 56, s: 54.1, display: '+23° 56′ 54.1″' },
+  /** J2000 / ICRS equatorial coordinates. */
+  ra: { h: 3, m: 46, s: 19.5859, display: '03h 46m 19.59s' },
+  dec: { sign: '+', d: 23, m: 56, s: 54.092, display: '+23° 56′ 54.09″' },
 
-  /** Apparent visual magnitude. Fourth-brightest of the seven sisters. */
-  magnitude: 4.14,
+  /**
+   * Apparent visual magnitude. Sources give 4.17–4.18; the star is a Beta
+   * Cephei variable with an amplitude of roughly 0.01 mag, so the spread is the
+   * star, not a disagreement.
+   */
+  magnitude: 4.18,
 
-  /** Blue-white subgiant, emission lines. This is where the accent colour
+  /**
+   * Merope is the FOURTH-BRIGHTEST of the seven sisters, and fifth-brightest
+   * object in the cluster once Atlas is counted. She is emphatically not the
+   * faintest — Celaeno (5.44) and Asterope (5.64) are both dimmer, and popular
+   * astronomy writing gets this wrong constantly. The "Lost Pleiad" title is
+   * mythological, not photometric.
+   */
+  rankAmongSisters: 4,
+
+  /** Blue-white subgiant with emission lines. This is where the accent colour
    *  comes from — the palette is not decorative, it is the star's spectrum. */
-  spectralType: 'B6IVe',
+  spectralType: 'B6IV(e)',
 
-  /** @unverified */
-  distanceLightYears: 440,
+  /** 460 ± 20 ly (142 ± 6 pc). */
+  distanceLightYears: 460,
+  distanceUncertaintyLightYears: 20,
 
   cluster: { messier: 'M45', name: 'The Pleiades' },
 } as const;
@@ -39,24 +53,68 @@ export const STAR = {
 export const NEBULA = {
   ngc: 'NGC 1435',
   names: ["Tempel's Nebula", 'The Merope Nebula'],
-  /** A knot of dust ~0.06 ly from the star, being shredded by its radiation
-   *  pressure. The closest thing in the sky to a deadline. @unverified */
-  knot: { designation: 'IC 349', name: "Barnard's Merope Nebula" },
+  discovery: { by: 'Wilhelm Tempel', date: '1859-10-19' },
+
   /**
-   * The point: Merope did not create this nebula and does not own it. It is an
-   * unrelated dust cloud the star happens to be drifting through, and the star's
-   * light is the only reason anyone can see it.
+   * The fact the studio is named for.
+   *
+   * The nebula was long assumed to be what remained of the cloud the Pleiades
+   * formed from. It is not. It is an unrelated interstellar cloud the cluster
+   * happens to be drifting through right now, and it is lit entirely by Merope.
    *
    * The studio is the star. The projects are what it makes visible.
    */
   thesis: 'The star is not the point. What it lights up is.',
+
+  /**
+   * A knot of dust 3,500 AU (0.06 ly) from the star and about 30″ from it on
+   * the sky, being decelerated and shaped by Merope's radiation pressure —
+   * smaller grains braking harder than larger ones. Thought to be a fragment of
+   * the Taurus–Auriga molecular cloud. The paper describing it is titled
+   * "An Interstellar Interloper", which is a very good name for a deadline.
+   */
+  knot: {
+    designation: 'IC 349',
+    name: "Barnard's Merope Nebula",
+    discovery: { by: 'E. E. Barnard', date: '1890-11' },
+    distanceAu: 3500,
+  },
 } as const;
 
-/** NASA Ames built a supercomputer named Merope out of a bigger one's leftovers. */
+/**
+ * The plate.
+ *
+ * On 16 November 1885 the brothers Paul and Prosper Henry photographed the
+ * Pleiades with the 13-inch refractor at Paris Observatory and found nebulosity
+ * nobody had seen through an eyepiece — including a whole new nebula around
+ * Maia (NGC 1432). The camera saw what the eye could not.
+ *
+ * Note the precision: this is NOT true of the Merope Nebula itself, which
+ * Tempel had already found visually in 1859. The plate revealed the *extent* of
+ * the nebulosity, not Merope's own.
+ */
+export const PLATE = {
+  date: '1885-11-16',
+  by: ['Paul Henry', 'Prosper Henry'],
+  instrument: '13-inch refractor, Paris Observatory',
+  revealed: 'NGC 1432, the Maia Nebula',
+} as const;
+
+/**
+ * NASA Ames named a supercomputer Merope and then made the name literal: it was
+ * built out of the Harpertown nodes retired from Pleiades, the larger system
+ * named after the cluster Merope belongs to.
+ *
+ * A machine named after a star in the Pleiades, assembled from the Pleiades'
+ * own cast-off parts, and still doing real science for eight years afterwards.
+ */
 export const SUPERCOMPUTER = {
   operator: 'NASA Advanced Supercomputing (NAS), Ames Research Center',
-  /** Assembled from decommissioned nodes of the Columbia system. @unverified */
-  builtFrom: 'Columbia',
+  builtFrom: 'Pleiades',
+  builtFromDetail: 'Intel Xeon 5400 (Harpertown) nodes from the original 2008 Pleiades',
+  cores: 5120,
+  peakTeraflops: 61,
+  inService: { from: '2013-09-16', to: '2021-05-12' },
   thesis: 'Spare parts. Real work.',
 } as const;
 
