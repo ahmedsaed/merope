@@ -13,9 +13,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 The landing page and content home for the Merope software studio (merope.dev).
 Individual projects live on subdomains; this repo is the front door.
 
-Read `docs/BRAND.md` before touching design, `docs/LORE.md` before writing any
-astronomical claim, and `docs/ROADMAP.md` before deciding something is in or out
-of scope.
+**New here? Start with `docs/HANDOFF.md`** — current state, the one open
+blocker, the decisions waiting on a human, and the failures already hit.
+
+Then read `docs/BRAND.md` before touching design, `docs/LORE.md` before writing
+any astronomical claim, and `docs/ROADMAP.md` before deciding something is in or
+out of scope.
 
 ## Non-negotiables
 
@@ -45,7 +48,8 @@ content/        notes/, changelog/, projects/ — markdown with validated frontm
 src/design/components/  Mark, Wordmark, StarField, ThemeToggle, primitives
 scripts/        shoot.ts (screenshots), render-og.ts, check-content.ts,
                 static-server.ts
-docs/           BRAND.md (direction), LORE.md (verified facts + sources),
+docs/           HANDOFF.md (start here), BRAND.md (direction),
+                LORE.md (verified facts + sources),
                 ROADMAP.md (phases and decisions)
 ```
 

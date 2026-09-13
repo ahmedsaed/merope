@@ -52,6 +52,8 @@ in `pnpm dev` and out of the built site.
 
 ## Documentation
 
+- [`docs/HANDOFF.md`](docs/HANDOFF.md) — **start here.** Current state, the one
+  open blocker, decisions waiting on a human, and the traps already hit.
 - [`docs/BRAND.md`](docs/BRAND.md) — the name, the direction, the easter eggs,
   and the failure mode to avoid.
 - [`docs/LORE.md`](docs/LORE.md) — every astronomical claim the site makes, with

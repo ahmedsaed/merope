@@ -1,7 +1,9 @@
 # Roadmap
 
-Phases are sized so each one ends with something reviewable. Phase 0 is done;
-everything after it is a proposal and should be argued with.
+Phases are sized so each one ends with something reviewable. Phases 0 and 1 are
+done; everything after them is a proposal and should be argued with.
+
+For current state and what is blocking Phase 2, see [`HANDOFF.md`](HANDOFF.md).
 
 ---
 
