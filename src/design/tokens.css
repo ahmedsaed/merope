@@ -1,0 +1,192 @@
+/*
+ * MEROPE — DESIGN TOKENS
+ *
+ * Two themes, one system. They are not "light and dark" — they are two ways of
+ * recording the same sky:
+ *
+ *   plate  The photographic glass plate. Warm paper, carbon ink, grease-pencil
+ *          annotations. This is the archive: what an observer wrote down.
+ *   sky    The observation itself. Void, starlight, the blue-white glow of a
+ *          B6IV star lighting dust it happens to be drifting through.
+ *
+ * Everything downstream consumes the SEMANTIC names (--color-ground, --color-ink,
+ * --color-accent, ...). Nothing outside this file should reference a raw palette
+ * value, so that swapping or extending a theme stays a single-file change.
+ */
+
+/* ---------------------------------------------------------------------------
+ * 1. Semantic surface — resolved per theme below.
+ * ------------------------------------------------------------------------ */
+
+:root,
+[data-theme='plate'] {
+  color-scheme: light;
+
+  /* Surfaces, back to front */
+  --ground: oklch(0.965 0.008 85); /* aged paper stock */
+  --surface: oklch(0.943 0.011 84); /* a card laid on the paper */
+  --raised: oklch(0.917 0.014 82); /* a well, or an inset plate */
+
+  /* Ink — carbon black, never pure black: print never is */
+  --ink: oklch(0.225 0.015 62);
+  --ink-muted: oklch(0.475 0.014 64);
+  --ink-faint: oklch(0.655 0.012 68);
+
+  /* Hairlines. Plate rules are printed, so they are ink, not shadow. */
+  --rule: oklch(0.845 0.012 72);
+  --rule-strong: oklch(0.735 0.014 70);
+
+  /* Accent — Merope is spectral class B6IV: blue-white. On warm paper it reads
+     as a deep process cyan, the colour of a photographic blue-sensitive plate. */
+  --accent: oklch(0.505 0.118 237);
+  --accent-soft: oklch(0.905 0.035 235);
+
+  /* Mark — the grease pencil an astronomer used to circle an object of
+     interest directly on the plate. Reserved for exactly that: attention. */
+  --mark: oklch(0.545 0.17 32);
+  --mark-soft: oklch(0.915 0.04 38);
+
+  /* The nebula bloom behind the wordmark. Barely there on paper. */
+  --glow: oklch(0.62 0.09 240 / 0.1);
+
+  /* Texture: paper tooth. */
+  --grain-opacity: 0.055;
+  --grain-blend: multiply;
+
+  /* Selection */
+  --selection-bg: oklch(0.905 0.035 235);
+  --selection-fg: oklch(0.225 0.015 62);
+}
+
+[data-theme='sky'] {
+  color-scheme: dark;
+
+  --ground: oklch(0.163 0.021 264);
+  --surface: oklch(0.199 0.025 263);
+  --raised: oklch(0.238 0.028 262);
+
+  --ink: oklch(0.935 0.01 250);
+  --ink-muted: oklch(0.7 0.016 252);
+  --ink-faint: oklch(0.52 0.02 255);
+
+  --rule: oklch(0.315 0.022 258);
+  --rule-strong: oklch(0.42 0.026 256);
+
+  --accent: oklch(0.8 0.105 232);
+  --accent-soft: oklch(0.33 0.055 240);
+
+  --mark: oklch(0.7 0.155 34);
+  --mark-soft: oklch(0.33 0.07 34);
+
+  /* Reflection nebula. NGC 1435 is dust Merope did not make and does not own —
+     it only lights it. Hence: visible, diffuse, never a hard edge. */
+  --glow: oklch(0.7 0.14 245 / 0.26);
+
+  /* Texture: sensor noise rather than paper tooth. */
+  --grain-opacity: 0.038;
+  --grain-blend: screen;
+
+  --selection-bg: oklch(0.33 0.055 240);
+  --selection-fg: oklch(0.935 0.01 250);
+}
+
+/* Respect the OS only until the visitor states a preference (which sets
+   data-theme explicitly on <html> and wins by specificity). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='plate']) {
+    color-scheme: dark;
+
+    --ground: oklch(0.163 0.021 264);
+    --surface: oklch(0.199 0.025 263);
+    --raised: oklch(0.238 0.028 262);
+
+    --ink: oklch(0.935 0.01 250);
+    --ink-muted: oklch(0.7 0.016 252);
+    --ink-faint: oklch(0.52 0.02 255);
+
+    --rule: oklch(0.315 0.022 258);
+    --rule-strong: oklch(0.42 0.026 256);
+
+    --accent: oklch(0.8 0.105 232);
+    --accent-soft: oklch(0.33 0.055 240);
+
+    --mark: oklch(0.7 0.155 34);
+    --mark-soft: oklch(0.33 0.07 34);
+
+    --glow: oklch(0.7 0.14 245 / 0.26);
+
+    --grain-opacity: 0.038;
+    --grain-blend: screen;
+
+    --selection-bg: oklch(0.33 0.055 240);
+    --selection-fg: oklch(0.935 0.01 250);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * 2. Magnitude — the studio's one borrowed scale.
+ *
+ * Stellar magnitude is logarithmic and inverted: lower is brighter, and each
+ * whole step is a factor of 2.512 in received light. Because the scale is
+ * ALREADY logarithmic, stepping it linearly is what reads as perceptually even
+ * — so these are evenly spaced on purpose, not out of laziness.
+ *
+ * Used two ways:
+ *   - as a brightness/emphasis ramp in the UI
+ *   - as the project status system (see docs/BRAND.md). mag 1 is a flagship;
+ *     mag 6 is the naked-eye limit, i.e. an experiment; mag 7 is telescope-only,
+ *     i.e. archived. Merope itself sits at 4.14 — deliberately not the brightest
+ *     thing in its own sky.
+ * ------------------------------------------------------------------------ */
+
+/* `static` is load-bearing: Tailwind v4 tree-shakes theme variables that no
+   generated utility references, which would silently drop every magnitude the
+   UI reads through `var(--mag-N)` in an inline style — and a dropped opacity
+   falls back to 1, so the failure is invisible rather than loud. */
+@theme static {
+  --mag-1: 1;
+  --mag-2: 0.88;
+  --mag-3: 0.76;
+  --mag-4: 0.64;
+  --mag-5: 0.52;
+  --mag-6: 0.4;
+  --mag-7: 0.28;
+
+  /* The real ratio, for anything that wants physically-correct falloff
+     (star rendering, the hero field) rather than a UI ramp. */
+  --pogson: 2.511886;
+}
+
+/* ---------------------------------------------------------------------------
+ * 3. Type, space, and motion.
+ * ------------------------------------------------------------------------ */
+
+:root {
+  /* Fluid display sizes. Clamped so the plate never breaks its measure.
+     Named --size-* rather than --text-*: globals.css bridges these into
+     Tailwind's --text-* namespace, and a token cannot reference itself. */
+  --size-display: clamp(2.75rem, 1.6rem + 5.2vw, 6.5rem);
+  --size-title: clamp(2rem, 1.4rem + 2.6vw, 3.5rem);
+  --size-heading: clamp(1.5rem, 1.2rem + 1.2vw, 2.125rem);
+  --size-subhead: clamp(1.175rem, 1.05rem + 0.5vw, 1.4rem);
+
+  /* Optical measure: prose wants ~66 characters, catalog data wants room. */
+  --measure-prose: 34rem;
+  --measure-wide: 72rem;
+
+  /* Annotation letterspacing — plate margins were lettered wide and small. */
+  --track-annotation: 0.16em;
+
+  --easing-plate: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --dur-fast: 140ms;
+  --dur-base: 260ms;
+  --dur-exposure: 900ms; /* theme change = a long exposure */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-exposure: 0ms;
+  }
+}

@@ -1,0 +1,124 @@
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import matter from 'gray-matter';
+import type { z } from 'zod';
+import {
+  noteSchema,
+  projectSchema,
+  releaseSchema,
+  type Entry,
+  type Note,
+  type Project,
+  type Release,
+} from './schema';
+
+/**
+ * Filesystem content layer.
+ *
+ * Deliberately hand-rolled rather than pulled from a library. It is ~100 lines,
+ * it runs only at build time, and it has no upgrade path to worry about — which
+ * matters more than the convenience, given how many content layers for Next
+ * have been abandoned by their authors.
+ */
+
+/**
+ * Resolved per call rather than at module load: a top-level `process.cwd()`
+ * bakes in whatever directory happened to be current when the module was first
+ * imported, which is both a hidden side effect and untestable.
+ */
+const contentRoot = () => process.env.MEROPE_CONTENT_ROOT ?? join(process.cwd(), 'content');
+
+/** Drafts are visible while writing and gone in the built site. */
+const includeDrafts = () => process.env.NODE_ENV === 'development';
+
+// `T extends object` rather than a bare ZodType: `z.infer` on an unconstrained
+// schema widens to `unknown`, which cannot be spread.
+function readCollection<T extends object>(dir: string, schema: z.ZodType<T>): Entry<T>[] {
+  const root = join(contentRoot(), dir);
+  if (!existsSync(root)) return [];
+
+  return readdirSync(root)
+    .filter((file) => file.endsWith('.md') || file.endsWith('.mdx'))
+    .map((file) => {
+      const sourcePath = relative(process.cwd(), join(root, file));
+      const raw = readFileSync(join(root, file), 'utf8');
+      const { data, content } = matter(raw);
+
+      const parsed = schema.safeParse(data);
+      if (!parsed.success) {
+        // Fail the build rather than ship a half-rendered page.
+        const issues = parsed.error.issues
+          .map((i) => `  ${i.path.join('.') || '(root)'}: ${i.message}`)
+          .join('\n');
+        throw new Error(`Invalid frontmatter in ${sourcePath}\n${issues}`);
+      }
+
+      return {
+        ...parsed.data,
+        slug: file.replace(/\.mdx?$/, ''),
+        body: content.trim(),
+        sourcePath,
+      } as Entry<T>;
+    })
+    .filter((entry) => includeDrafts() || !(entry as { draft?: boolean }).draft);
+}
+
+/** Newest first. */
+function byDateDesc<T extends { date: Date }>(a: T, b: T) {
+  return b.date.getTime() - a.date.getTime();
+}
+
+export function getNotes(): Entry<Note>[] {
+  return readCollection('notes', noteSchema).sort(byDateDesc);
+}
+
+export function getReleases(): Entry<Release>[] {
+  return readCollection('changelog', releaseSchema).sort(byDateDesc);
+}
+
+export function getProjects(): Entry<Project>[] {
+  return readCollection('projects', projectSchema).sort((a, b) => {
+    if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
+    if (a.order !== undefined) return -1;
+    if (b.order !== undefined) return 1;
+    // Brightest first, which is what magnitude already means.
+    if (a.magnitude !== b.magnitude) return a.magnitude - b.magnitude;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+export function getNote(slug: string): Entry<Note> | undefined {
+  return getNotes().find((n) => n.slug === slug);
+}
+
+export function getProject(slug: string): Entry<Project> | undefined {
+  return getProjects().find((p) => p.slug === slug);
+}
+
+export function getReleasesForProject(project: string): Entry<Release>[] {
+  return getReleases().filter((r) => r.project === project);
+}
+
+/**
+ * Every project slug referenced by a note or release must actually exist.
+ * Called by the build so a rename cannot leave dangling references behind.
+ */
+export function assertReferentialIntegrity(): void {
+  const slugs = new Set(getProjects().map((p) => p.slug));
+  const problems: string[] = [];
+
+  for (const note of getNotes()) {
+    if (note.project && !slugs.has(note.project)) {
+      problems.push(`${note.sourcePath}: project "${note.project}" does not exist`);
+    }
+  }
+  for (const release of getReleases()) {
+    if (!slugs.has(release.project)) {
+      problems.push(`${release.sourcePath}: project "${release.project}" does not exist`);
+    }
+  }
+
+  if (problems.length) {
+    throw new Error(`Dangling project references:\n${problems.map((p) => `  ${p}`).join('\n')}`);
+  }
+}
