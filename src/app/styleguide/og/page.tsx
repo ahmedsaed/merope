@@ -52,9 +52,12 @@ export default function OgCard() {
 
       {/* Wide enough that the westernmost labels (Celaeno, Electra) keep clear of
           the card edge, and that the cluster reaches back into the middle rather
-          than leaving a dead band between the type and the sky. */}
-      <div className="relative flex w-[530px] shrink-0 items-center justify-center pr-6">
-        <StarField size={500} nebula labelled />
+          than leaving a dead band between the type and the sky. Cropped, because
+          a square frame around a cluster this wide puts a third of the card's
+          height into empty sky. The background stars come from the site-wide
+          SkyBackdrop behind this card, not from the field itself. */}
+      <div className="relative flex w-[560px] shrink-0 items-center justify-center pr-12">
+        <StarField size={470} crop nebula />
       </div>
     </div>
   );

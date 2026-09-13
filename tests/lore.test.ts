@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { MAGNITUDE_CLASSES, NEBULA, STAR, SUPERCOMPUTER } from '@/lib/merope';
+import {
+  MAGNITUDE_CLASSES,
+  NEBULA,
+  PLEIADES,
+  PLEIADES_MISSING,
+  STAR,
+  SUPERCOMPUTER,
+} from '@/lib/merope';
 
 /**
  * Regression guards for lore that has already been got wrong once.
@@ -14,7 +21,7 @@ import { MAGNITUDE_CLASSES, NEBULA, STAR, SUPERCOMPUTER } from '@/lib/merope';
 
 describe('facts that popular sources get wrong', () => {
   it('Merope is the fourth-brightest sister, not the faintest', () => {
-    // Celaeno (5.44) and Asterope (5.64) are both dimmer. The "Lost Pleiad"
+    // Celaeno (5.46) and Asterope (5.76) are both dimmer. The "Lost Pleiad"
     // title is mythological, not photometric.
     expect(STAR.rankAmongSisters).toBe(4);
     expect(STAR.magnitude).toBeCloseTo(4.18, 2);
@@ -43,5 +50,33 @@ describe('the magnitude scale stays a real scale', () => {
 
   it('puts the naked-eye limit at 6, where it actually is', () => {
     expect(MAGNITUDE_CLASSES[5].meaning).toMatch(/naked-eye limit/i);
+  });
+});
+
+describe('the cluster data', () => {
+  it('holds all nine members, so the asterism is the real one', () => {
+    // Seven sisters plus Atlas and Pleione, their parents. The pair is the
+    // eastern handle and the cluster does not read as the Pleiades without it —
+    // which is exactly how the gap was noticed.
+    expect(PLEIADES).toHaveLength(9);
+    expect(PLEIADES.filter((s) => s.sister)).toHaveLength(7);
+    expect(
+      PLEIADES.filter((s) => !s.sister)
+        .map((s) => s.name)
+        .sort(),
+    ).toEqual(['Atlas', 'Pleione']);
+  });
+
+  it('ranks Merope fourth among the sisters, as STAR claims she is', () => {
+    // The rank is stored as a constant and is also derivable from the table.
+    // Asserting they agree stops one being corrected without the other.
+    const sisters = PLEIADES.filter((s) => s.sister).sort((a, b) => a.magnitude - b.magnitude);
+    expect(sisters.findIndex((s) => s.name === 'Merope') + 1).toBe(STAR.rankAmongSisters);
+  });
+
+  it('has no outstanding coordinates', () => {
+    // Non-empty means a member is missing and the star field is not the sky.
+    // The styleguide renders this list in grease pencil for the same reason.
+    expect(PLEIADES_MISSING).toEqual([]);
   });
 });

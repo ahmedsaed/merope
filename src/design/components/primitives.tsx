@@ -23,12 +23,20 @@ export function Annotation({
   tone = 'muted',
   as: Tag = 'span',
   className = '',
+  style,
 }: {
   children: React.ReactNode;
   /** `mark` means *this needs attention* and is rationed. See docs/BRAND.md. */
   tone?: 'muted' | 'accent' | 'mark' | 'faint';
   as?: 'span' | 'p' | 'div' | 'dt';
   className?: string;
+  /**
+   * For the magnitude ramp only. `mag-${n}` cannot be written as a class —
+   * Tailwind v4 scans source text and never sees an interpolated name, so the
+   * opacity has to arrive as `var(--mag-N)` in an inline style. Same reason the
+   * magnitude tokens are `@theme static`; see tokens.css.
+   */
+  style?: React.CSSProperties;
 }) {
   const tones = {
     muted: '',
@@ -37,7 +45,11 @@ export function Annotation({
     mark: 'text-mark',
   } as const;
 
-  return <Tag className={`annotation ${tones[tone]} ${className}`}>{children}</Tag>;
+  return (
+    <Tag className={`annotation ${tones[tone]} ${className}`} style={style}>
+      {children}
+    </Tag>
+  );
 }
 
 /* ------------------------------------------------------------------------ */

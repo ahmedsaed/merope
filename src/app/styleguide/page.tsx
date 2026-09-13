@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Catalogue, type CatalogueEntry } from '@/design/components/Catalogue';
 import { Mark } from '@/design/components/Mark';
 import { StarField } from '@/design/components/StarField';
 import { ThemeToggle } from '@/design/components/ThemeToggle';
@@ -50,31 +51,29 @@ const TYPE = [
   { cls: 'annotation', label: 'annotation', sample: 'Margin lettering · 03h 46m' },
 ];
 
-/** Sample rows for the two catalogue treatments. Only the first is real. */
-const CATALOGUE = [
+/** Sample rows for the catalogue. Only the first is real. */
+const CATALOGUE: CatalogueEntry[] = [
   {
     name: 'merope.dev',
-    magnitude: 3 as Magnitude,
+    magnitude: 3,
     kind: 'service',
-    firstLight: '2026—09—13',
+    firstLight: new Date('2026-09-13T00:00:00Z'),
     summary: 'The studio itself — front door, notes, changelogs.',
-    real: true,
   },
   {
     name: 'Example tool',
-    magnitude: 4 as Magnitude,
+    magnitude: 4,
     kind: 'tool',
-    firstLight: '—',
-    summary: 'Rows dim to their own magnitude, so status reads before it is read.',
-    real: false,
+    firstLight: new Date('2026-01-20T00:00:00Z'),
+    summary: 'The marginalia dims to the row’s own magnitude, so status reads before it is read.',
   },
   {
     name: 'Example experiment',
-    magnitude: 6 as Magnitude,
+    magnitude: 6,
     kind: 'experiment',
-    firstLight: '—',
-    summary: 'An experiment sits at the naked-eye limit and looks like one.',
-    real: false,
+    firstLight: new Date('2025-11-02T00:00:00Z'),
+    summary:
+      'An experiment sits at the naked-eye limit and looks like one — without the prose becoming hard to read, which is where dimming a whole row goes wrong.',
   },
 ];
 
@@ -150,11 +149,18 @@ export default function Styleguide() {
         <Section
           n="02"
           title="The star field"
-          lede="The Pleiades at their real relative positions. Every dot is projected from published coordinates — nothing is hand-placed, because a star chart that is only approximately the sky is just a pattern of dots."
+          lede="The Pleiades at their real relative positions, in the real field around them — 266 background stars from Gaia DR3, not a scatter. Nothing is hand-placed, because a star chart that is only approximately the sky is just a pattern of dots. Below it, the same nine as plain discs and labelled, which is the version used to check the projection."
         >
           <div className="grid gap-6 md:grid-cols-[auto_minmax(0,1fr)] md:items-start">
-            <div className="border-rule flex justify-center border p-6">
-              <StarField size={340} nebula labelled />
+            <div className="border-rule flex flex-col items-center gap-5 border p-6">
+              <StarField size={340} crop nebula />
+              {/* Labels are kept here and nowhere else. This is the surface where
+                  the projection gets checked — "Pleione is leftmost" is a claim
+                  you have to be able to read off the drawing — and the page is
+                  internal and noindex. On the site itself the names are the thing
+                  that makes the field read as an astronomy diagram instead of a
+                  picture of the sky, so they are off. */}
+              <StarField size={340} crop labelled highlight={false} />
             </div>
             <div>
               <div className="border-rule border-t">
@@ -164,7 +170,14 @@ export default function Styleguide() {
                     className="border-rule grid grid-cols-[1.5rem_minmax(4rem,1fr)_auto] items-baseline gap-x-4 border-b py-2"
                   >
                     <MagnitudeDot magnitude={Math.round(star.magnitude) as Magnitude} size={9} />
-                    <span className={star.name === 'Merope' ? 'text-accent' : ''}>{star.name}</span>
+                    <span className={star.name === 'Merope' ? 'text-accent' : ''}>
+                      {star.name}
+                      {star.sister ? null : (
+                        <Annotation tone="faint" className="ml-2 normal-case">
+                          parent
+                        </Annotation>
+                      )}
+                    </span>
                     <span className="annotation tabular-nums">
                       {star.designation} · m{star.magnitude} · {(x * 100).toFixed(0)},
                       {(y * 100).toFixed(0)}
@@ -172,17 +185,27 @@ export default function Styleguide() {
                   </div>
                 ))}
               </div>
-              <div className="border-mark bg-mark-soft mt-5 border-l-2 p-3.5">
-                <Annotation tone="mark" as="p">
-                  Incomplete — blocks the Phase 2 hero
-                </Annotation>
-                <p className="mt-1.5 text-sm">
-                  {PLEIADES_MISSING.join(', ')} are missing. Their coordinates could not be verified
-                  from this environment, and one search returned Asterope with Alcyone&rsquo;s right
-                  ascension — a plausible wrong number of exactly the kind this system exists to
-                  keep out. Add from SIMBAD before the hero ships.
+              {/* Driven by the data, not by hand: the moment a member drops out
+                  of merope.ts the gap announces itself here in grease pencil
+                  rather than waiting to be noticed in a screenshot. */}
+              {PLEIADES_MISSING.length > 0 ? (
+                <div className="border-mark bg-mark-soft mt-5 border-l-2 p-3.5">
+                  <Annotation tone="mark" as="p">
+                    Incomplete — the field is not the sky
+                  </Annotation>
+                  <p className="mt-1.5 text-sm">
+                    {PLEIADES_MISSING.join(', ')} {PLEIADES_MISSING.length === 1 ? 'is' : 'are'}{' '}
+                    missing. Add from SIMBAD and cite in <code>docs/LORE.md</code> before shipping
+                    anything that renders the field.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-ink-muted mt-5 text-sm">
+                  All nine members, ICRS J2000, one SIMBAD query. Seven sisters plus Atlas and
+                  Pleione, who are their parents — the pair at the eastern edge is the
+                  cluster&rsquo;s handle, and the asterism does not read as the Pleiades without it.
                 </p>
-              </div>
+              )}
             </div>
           </div>
         </Section>
@@ -245,65 +268,10 @@ export default function Styleguide() {
 
         <Section
           n="06"
-          title="The catalogue — two treatments"
-          lede="Same data, two registers. A dense bordered table risks reading as a spreadsheet at the handful of projects this will actually have; the index gets its tabular quality from alignment instead of borders. Pick by looking."
+          title="The catalogue"
+          lede="Decided by looking. Two treatments were built with the same data — a dense bordered table and this index — and the table was rejected: at the handful of projects a one-person studio has, it reads as a spreadsheet with three rows, which is the wrong register for a studio. This one gets its tabular quality from alignment instead of borders."
         >
-          <Annotation tone="accent" as="p" className="mb-3">
-            A · Catalogue
-          </Annotation>
-          <div className="border-rule overflow-x-auto border">
-            <table className="w-full min-w-[34rem] border-collapse">
-              <thead>
-                <tr>
-                  {['Designation', 'Mag', 'Class', 'First light', 'Summary'].map((h) => (
-                    <th
-                      key={h}
-                      className="annotation border-rule-strong border-b px-3.5 py-2.5 text-left whitespace-nowrap"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {CATALOGUE.map((row) => (
-                  <tr key={row.name} style={{ opacity: `var(--mag-${row.magnitude})` }}>
-                    <td className="border-rule border-b px-3.5 py-2.5 font-medium">{row.name}</td>
-                    <td className="border-rule annotation border-b px-3.5 py-2.5">
-                      {row.magnitude}
-                    </td>
-                    <td className="border-rule annotation border-b px-3.5 py-2.5">{row.kind}</td>
-                    <td className="border-rule annotation border-b px-3.5 py-2.5 whitespace-nowrap">
-                      {row.firstLight}
-                    </td>
-                    <td className="border-rule text-ink-muted border-b px-3.5 py-2.5 text-sm">
-                      {row.summary}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <Annotation tone="accent" as="p" className="mt-10 mb-3">
-            B · Index
-          </Annotation>
-          <ul className="border-rule border-t">
-            {CATALOGUE.map((row) => (
-              <li key={row.name} className="border-rule border-b py-6">
-                <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2">
-                  <div className="flex items-baseline gap-3.5">
-                    <MagnitudeDot magnitude={row.magnitude} size={11} />
-                    <h3 className="text-heading font-normal">{row.name}</h3>
-                  </div>
-                  <Annotation tone="faint" className="tabular-nums">
-                    m{row.magnitude} · {row.kind} · first light {row.firstLight}
-                  </Annotation>
-                </div>
-                <p className="text-ink-muted mt-2 max-w-(--measure-prose)">{row.summary}</p>
-              </li>
-            ))}
-          </ul>
+          <Catalogue entries={CATALOGUE} />
           <Annotation tone="faint" as="p" className="mt-3">
             Only merope.dev is a real project — the other two are examples
           </Annotation>

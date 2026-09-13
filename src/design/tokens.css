@@ -49,6 +49,11 @@
   /* The nebula bloom behind the wordmark. Barely there on paper. */
   --glow: oklch(0.62 0.09 240 / 0.1);
 
+  /* The sky the site stands on. On paper it is a printed negative: dark specks
+     on warm stock, which is exactly what stars look like on a glass plate. Held
+     low enough that it never competes with a line of type. */
+  --sky-opacity: 0.5;
+
   /* Texture: paper tooth. */
   --grain-opacity: 0.055;
   --grain-blend: multiply;
@@ -81,6 +86,9 @@
   /* Reflection nebula. NGC 1435 is dust Merope did not make and does not own —
      it only lights it. Hence: visible, diffuse, never a hard edge. */
   --glow: oklch(0.7 0.14 245 / 0.26);
+
+  /* On sky it is starlight rather than emulsion, so it carries further. */
+  --sky-opacity: 0.8;
 
   /* Texture: sensor noise rather than paper tooth. */
   --grain-opacity: 0.038;
@@ -115,6 +123,8 @@
 
     --glow: oklch(0.7 0.14 245 / 0.26);
 
+    --sky-opacity: 0.8;
+
     --grain-opacity: 0.038;
     --grain-blend: screen;
 
@@ -135,7 +145,7 @@
  *   - as a brightness/emphasis ramp in the UI
  *   - as the project status system (see docs/BRAND.md). mag 1 is a flagship;
  *     mag 6 is the naked-eye limit, i.e. an experiment; mag 7 is telescope-only,
- *     i.e. archived. Merope itself sits at 4.14 — deliberately not the brightest
+ *     i.e. archived. Merope itself sits at 4.18 — deliberately not the brightest
  *     thing in its own sky.
  * ------------------------------------------------------------------------ */
 

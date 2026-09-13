@@ -1,10 +1,11 @@
 # Handoff
 
-Written at the end of the first working session, for whoever picks this up next
-— human or agent, in a different environment.
+Written at the end of the second working session, for whoever picks this up
+next — human or agent, in a different environment.
 
-**Branch:** `claude/merope-landing-page-2piou4` → **PR #1**, all checks green.
-**Phases 0 and 1 are done.** Phase 2 is next and is partly blocked; see below.
+**Phases 0, 1 and 2 are done. Nothing is blocked.** The landing page is
+complete and launchable, and the visual direction has had a real review pass.
+Phase 3 is next — but the immediate intent is to keep refining the UI.
 
 ---
 
@@ -12,15 +13,16 @@ Written at the end of the first working session, for whoever picks this up next
 
 ```bash
 pnpm install
-pnpm verify           # typecheck, lint, format, content, build, 64 unit + 6 e2e
-pnpm dev              # then open /styleguide
+pnpm exec playwright install chromium   # only if you want screenshots
+pnpm verify                             # typecheck, lint, format, content, build, 74 unit + 6 e2e
+pnpm dev                                # then open / and /styleguide
 ```
 
-`/styleguide` is the review surface for the whole design system: the mark at four
-sizes, the star field, every colour token, the type scale, the magnitude ramp,
-both catalogue treatments, prose, and every lore fact the UI can render. Flip the
-`plate / sky` toggle in its header — nothing in the system is allowed to need a
-second set of rules to survive that change.
+`/` is the site. `/styleguide` is the review surface for the design system: the
+mark at four sizes, the star field, every colour token, the type scale, the
+magnitude ramp, the catalogue, prose, and every lore fact the UI can render.
+Flip the `plate / sky` toggle in its header — nothing in the system is allowed
+to need a second set of rules to survive that change.
 
 Read in this order:
 
@@ -33,141 +35,147 @@ Read in this order:
 
 ---
 
-## 2. The one real blocker
+## 2. What changed this session
 
-**Three Pleiades members have no coordinates, and the Phase 2 hero cannot ship
-without them.**
+### The star data blocker is closed
 
-`src/lib/merope.ts` holds six of the seven sisters, verified and cited. Missing:
+The previous session shipped six of the nine cluster members because its
+network policy blocked SIMBAD. All nine are now in `src/lib/merope.ts`, read
+from SIMBAD on 2026-09-13, **and the original six were re-read from the same
+query** so the whole table has one provenance instead of six rows from
+popular-astronomy pages and three from a catalogue. The drift was small
+(≤ 0.03″ of position, ≤ 0.12 mag) and never changed a ranking, but a table
+assembled from several sources at several epochs is one nobody can re-derive.
 
-- **Asterope** — 21 Tauri
-- **Atlas** — 27 Tauri
-- **Pleione** — 28 Tauri
+`PLEIADES_MISSING` is now empty and `tests/lore.test.ts` asserts that it stays
+that way. The constant is kept rather than deleted: the styleguide renders
+whatever is in it as a grease-pencil warning, so the next gap announces itself.
 
-This is why a less network-constrained environment is wanted. In the session
-that built this, the egress policy blocked SIMBAD, `messier.seds.org`,
-`nas.nasa.gov` and Wikipedia fetches, so only what a web _search_ summariser
-could extract was available — and the one result that did return a position for
-Asterope gave it **Alcyone's right ascension**. Precise, plausible, and wrong.
-Rather than ship a star chart that is not the sky, the three were left out.
+Two `tests/sky.test.ts` assertions changed, which was the test doing its job:
+**Pleione** is the easternmost member (leftmost dot), not Alcyone, and
+**Asterope** is the northernmost, not Taygeta. Merope is still furthest south.
 
-It is visible: Atlas and Pleione form the cluster's distinctive eastern
-"handle", so Alcyone currently sits alone at the edge of the frame and the
-asterism does not read as the Pleiades.
+### Three things the complete cluster broke, and how
 
-### What to do
+Each was invisible until the ninth star landed, and each is now guarded by a
+test rather than by a comment:
 
-Pull J2000 / ICRS right ascension, declination and apparent V magnitude from
-**SIMBAD** (`https://simbad.u-strasbg.fr/simbad/sim-id?Ident=21+Tau`, and the
-same for `27+Tau`, `28+Tau`), then:
+- **The field was top-anchored.** With all nine members the cluster is ~1.7×
+  wider than it is tall, and `projectCluster` scaled both axes by the larger
+  span from each axis's minimum — so the shorter axis could not fill the frame
+  and the asterism sat in the top two-thirds with a dead band under it. It now
+  centres each axis on its own extent.
+- **Three labels collided.** Atlas and Pleione are five arcminutes apart and
+  Asterope sits directly above Taygeta, so a single fixed offset per label put
+  `TAYGETA` on top of Asterope's dot. `placeLabels` in `sky.ts` now tries four
+  positions per label, brightest star first, and takes the first that hits
+  nothing — labels cannot be hand-placed for the same reason dots cannot.
+- **A square frame wasted a third of the hero.** `StarField crop` tightens the
+  viewBox to the union of dots, labels, ring and nebula. Cropping changes the
+  frame, never a position.
 
-1. Add three entries to `PLEIADES` in `src/lib/merope.ts`. Store **sexagesimally,
-   exactly as printed** — the whole point is that a value can be checked against
-   its source without undoing arithmetic. Set `sister: true` for Asterope,
-   `false` for Atlas and Pleione (they are the parents, not sisters).
-2. Empty `PLEIADES_MISSING` in the same file. The grease-pencil warning on
-   `/styleguide` is driven by it and disappears on its own.
-3. Add the rows to the coordinate table in `docs/LORE.md`, delete the
-   "Three members are still missing" section, and add the SIMBAD citations.
-4. `pnpm test` — `tests/sky.test.ts` asserts cluster geometry (east is left,
-   Merope furthest south, Taygeta furthest north). **Two of those will correctly
-   fail once the new stars land, and that is the test doing its job — update
-   them, do not delete them:**
-   - Atlas sits at RA ~03h 49m, east of Alcyone, so _Atlas_ becomes the leftmost
-     star and the Alcyone assertion breaks.
-   - Asterope is north of Taygeta, so the Taygeta assertion probably breaks too.
-   - Merope stays furthest south — Atlas and Pleione are both north of her — so
-     that assertion should survive untouched. If it doesn't, something is wrong
-     with the new data, not the test.
-5. `pnpm build && pnpm render:og` to regenerate the Open Graph card, which
-   contains the star field.
+### Phase 2
 
-Note Asterope is a double (21 Tau / 22 Tau, separated by 2.82′). One entry for
-21 Tau is right at this scale; two dots that close would merge anyway.
+The home page is `src/app/page.tsx`: header, hero, statement, catalogue, footer.
+See `docs/ROADMAP.md` for what each block decided. The catalogue treatment was
+settled — **B, the index** — and the styleguide now shows only the chosen one.
 
----
+### The visual pass that followed
 
-## 3. Environment the next session wants
+Reviewed against real pixels, in both themes, at both breakpoints. What changed,
+and why it is worth not undoing:
 
-Node 22, pnpm, and a Chromium that Playwright can drive. Everything else is in
-`package.json`.
+- **Star names are gone from the site.** Nine uppercase mono labels are the one
+  thing that made the field read as an astronomy diagram rather than a picture of
+  the sky, and `docs/BRAND.md` is explicit that the lore is never in the way.
+  They survive only on `/styleguide`, which is where the projection gets checked
+  and is noindex. `placeLabels` therefore has exactly one caller — that is
+  deliberate, not dead code.
+- **The site stands on a sky.** `SkyBackdrop`, behind every route: 650 real Gaia
+  DR3 stars across 3° around Merope. It scrolls with the page and is masked out
+  over its lower half, so nothing sits behind prose. A clearing of `--ground`
+  under the hero keeps the background off the asterism.
+- **One glyph, one switch** — `STAR_SHAPE` in `src/design/glyph.ts`, currently
+  `disc`. Flipping it changes the cluster and the backdrop together, on purpose.
 
-**Network egress** — the following were blocked last time and are worth
-allowlisting:
-
-| Host                  | Needed for                                      |
-| --------------------- | ----------------------------------------------- |
-| `simbad.u-strasbg.fr` | The blocker above. The one that really matters. |
-| `messier.seds.org`    | Cluster tables, IC 349, the Henry brothers      |
-| `nas.nasa.gov`        | The supercomputer facts                         |
-| `en.wikipedia.org`    | General cross-checking                          |
-
-`fonts.googleapis.com` / `fonts.gstatic.com` were **not** a problem — `next/font`
-downloaded Newsreader and IBM Plex Mono successfully at build time, and the
-woff2 files land in `.next/static/media`. Fonts are self-hosted from the build
-output, so there is no runtime dependency on Google.
-
-**Chromium version drift.** `scripts/static-server.ts` exports `findChromium()`,
-which prefers a browser already present under `PLAYWRIGHT_BROWSERS_PATH` over the
-build `@playwright/test` pins. Written because the sandbox shipped Chromium 1194
-against a pinned 1243 and downloading a second copy was slow and sometimes
-blocked. On a normal machine it returns `undefined` and Playwright resolves
-normally — harmless, and worth keeping for CI images.
+Three rules came out of this pass and are now in `AGENTS.md`: no star is ever
+hand-placed (the background is a catalogue query, not a scatter); the glyph is
+one constant; and everything that paints a token must carry `exposure` or it
+snaps through the theme cross-fade.
 
 ---
 
-## 4. Decisions waiting on the human
+## 3. Decisions still waiting on a human
 
-None of these block work; all of them change what gets built.
+### a. The next UI refinement pass
 
-### a. The catalogue — this is the live one
-
-`/styleguide` section 06 has **two treatments with identical data**:
-
-- **A · Catalogue** — dense, bordered, tabular.
-- **B · Index** — generous rows, project name large in Newsreader, mono data as
-  aligned marginalia. Tabular quality from alignment rather than borders.
-
-Ahmed's instinct was that a table "feels a bit odd" for a handful of projects,
-and having seen both rendered, that instinct looks right: **B reads better at
-this scale.** A looks like a spreadsheet with three rows. Not yet confirmed, so
-Phase 2 should get a decision before building the real one. Fallback if neither
-lands: a stacked list with the magnitude dot as the only tabular element.
+This is the live one. The hero has been through a review; the rest has not. The
+catalogue, the statement, the footer and the styleguide are all still at their
+first draft, and the vertical rhythm between blocks was set by eye in one sitting.
 
 ### b. How far the plate furniture goes
 
-Currently pitched deliberately restrained — hairline rules and margin lettering
-only. No registration marks, plate numbers, or heavy grain. The rule written into
-`primitives.tsx` is _default to less_, because this is the axis on which the
-whole design tips into costume. Easier to judge against real pixels than in the
-abstract.
+Still open, and still easier to judge against real pixels than in the abstract.
+Currently pitched deliberately restrained: hairline rules and margin lettering
+only, no registration marks, no plate numbers, no heavy grain. The rule written
+into `primitives.tsx` is _default to less_, because this is the axis on which
+the whole design tips into costume. Now that there is a real page to look at,
+this is worth a decision.
 
-### c. Phase 4 will bend the static rule
+### c. The star glyph
+
+`disc` is live. `star` is one constant away. Discs are the photographically
+honest option and read calmer; stars read more decorative and are more legible
+at small sizes. Both have been seen rendered; neither is wrong.
+
+### d. Phase 4 will bend the static rule
 
 A static page cannot POST to Buttondown without exposing a key. Either their
 hosted embed, or one serverless function as the only non-static piece of the
 system. Explicitly deferred, but decide it deliberately rather than discovering
 it late.
 
+### e. The catalogue has one row
+
+That is honest and it is also thin. The page is complete; whether it is
+_launchable_ depends on whether one project is enough to launch with, which is
+a call about the studio, not about the site.
+
 ---
 
-## 5. What Phase 2 actually is
+## 4. What Phase 3 is
 
-**The landing page is not a phase** — it is the assembly point three phases
-contribute to. `docs/ROADMAP.md` has the full table. Phase 2 builds:
+`docs/ROADMAP.md` has the full list. The shape of it:
 
-- **Hero** — the star field given room, wordmark, thesis. Blocked on §2.
-- **Catalogue** — once §4a is decided.
-- **Studio statement** — three sentences, not a manifesto.
-- **Header and footer** — with the coordinate line.
+- `/notes` index and note pages. `/notes/[slug]` already exists and renders.
+- `/changelog`, `/projects/[slug]`, `/studio`.
+- **Then flip `live: true`** on those entries in `NAV` (`src/lib/site.ts`). The
+  header renders `liveNav()`, so an item appears the moment its route does.
+  This is the last step of building a route, not a separate task.
+- The recent-notes strip on the home page, above the footer.
+- RSS/Atom (the "ephemeris"), sitemap, `robots.txt`.
+- Per-note OG images, and a build-time image pipeline — static export has no
+  runtime optimiser.
 
-The nav shows only routes that resolve, so in Phase 2 there is no `/notes` or
-`/changelog` link. It grows with the site. Phase 3 inserts a recent-notes strip
-above the footer; Phase 4 inserts the newsletter below it.
+---
 
-**Motion is decided: almost none.** A long-exposure cross-fade on the theme
-change, a slight pointer response on the nebula. No scroll-triggered reveals.
-On a page this typographic, restraint is the distinctive part.
+## 5. Environment
+
+Node 22, pnpm, and a Chromium that Playwright can drive. Everything else is in
+`package.json`. `pnpm exec playwright install chromium` if screenshots fail with
+a missing executable.
+
+**Network egress.** SIMBAD (`simbad.u-strasbg.fr`) was reachable this session
+and is the only host that has ever mattered — it is where every coordinate comes
+from. `messier.seds.org`, `nas.nasa.gov` and `en.wikipedia.org` are worth
+allowlisting for cross-checking. `fonts.googleapis.com` / `fonts.gstatic.com`
+are **not** needed at runtime: `next/font` downloads Newsreader and IBM Plex
+Mono at build time and the woff2 files are served from the build output.
+
+**Chromium version drift.** `scripts/static-server.ts` exports `findChromium()`,
+which prefers a browser already present under `PLAYWRIGHT_BROWSERS_PATH` over the
+build `@playwright/test` pins. On a normal machine it returns `undefined` and
+Playwright resolves normally — harmless, and worth keeping for CI images.
 
 ---
 
@@ -182,6 +190,9 @@ and is wrong.
   missing `opacity` falls back to `1`, so the page still renders and nothing
   reports a problem. Six of seven magnitude tokens disappeared this way. Hence
   `@theme static`, guarded by `tests/tokens.test.ts`.
+- **`mag-${n}` cannot be written as a class.** Tailwind v4 scans source text and
+  never sees an interpolated name, so the magnitude ramp has to arrive as
+  `var(--mag-N)` in an inline style. That is why `Annotation` takes a `style`.
 - **`max-w-[--foo]` sets a custom property in Tailwind v4; it does not read
   one.** Use `max-w-(--foo)`. Every max-width on the home page was silently
   inert for an afternoon.
@@ -196,7 +207,21 @@ and is wrong.
   `src/app/opengraph-image.png`, which is committed because the build cannot
   assume a browser. The tests check it is a valid 1200×630@2x PNG but **cannot
   check that it is current** — re-run it whenever the mark, palette, thesis or
-  star field changes.
+  star field changes. It was regenerated this session because the field did.
+- **A fixed `size` on `StarField` used to overflow the page on a phone.** The
+  SVG now carries `max-width: 100%; height: auto`, so `size` is an intention
+  rather than a floor. Check `scrollWidth === clientWidth` at 390px after
+  touching the hero.
+- **A CSS gradient cannot be transitioned.** The clearing under the hero field
+  was a `radial-gradient` of `--ground` and snapped to the new theme instantly
+  while the page took the full 900ms, leaving the cluster in a patch of the old
+  theme for the whole fade. It is now a flat `background-color` behind a static
+  `mask-image`. The same class of bug hits every SVG `fill`, `stroke` and
+  `stop-color` — hence the `exposure` utility in `globals.css`.
+- **The Playwright MCP browser writes `.playwright-mcp/` into the repo,** and
+  prettier reads its `.yml` snapshots and fails `format:check`, which fails CI
+  for no reason at all. Already in `.prettierignore` and `.gitignore`; do not
+  remove them.
 
 ---
 
@@ -205,43 +230,46 @@ and is wrong.
 `pnpm verify` runs exactly what CI runs, in an order that matters: the token
 tests assert against the _built_ CSS, so the build has to come first.
 
-**Then look at it.** `pnpm build && pnpm shoot / /styleguide /notes/first-light`
-writes PNGs of every route in both themes at both breakpoints to `.shots/`, and
-exits non-zero on any console error or failed response. A green build says
-nothing about whether a page is any good, and this project is mostly a design
-problem.
+**Then look at it.** Two ways:
 
-Two useful facts about `pnpm shoot`: full-page desktop shots run 6–7 MB, which
-is too large for some upload paths — crop or screenshot a single element if you
-need to share one. And it drives the real static export from `out/`, resolved
-the way a static host resolves it, not a dev server.
+- `pnpm build && pnpm shoot / /styleguide` writes PNGs of every route in both
+  themes at both breakpoints to `.shots/`, and exits non-zero on any console
+  error or failed response. Full-page desktop shots run 6–7 MB, which is too
+  large for some upload paths — crop or screenshot a single element to share one.
+- Or serve the export (`npx tsx scripts/serve.ts 4321`) and drive it with the
+  Playwright MCP browser, which is what this session used: it screenshots single
+  elements directly and does not need the project's own Chromium download.
+
+Either way it drives the real static export from `out/`, resolved the way a
+static host resolves it, not a dev server. A green build says nothing about
+whether a page is any good, and this project is mostly a design problem.
 
 ---
 
 ## 8. State of the world
 
-|         |                                                                             |
-| ------- | --------------------------------------------------------------------------- |
-| Stack   | Next 16 App Router, React 19, TS strict, Tailwind v4, `output: 'export'`    |
-| Hosting | Vercel. `vercel.json` carries headers; nothing else is Vercel-specific      |
-| Tests   | 64 unit (vitest), 6 e2e (playwright)                                        |
-| CI      | `.github/workflows/ci.yml` — green on PR #1, including e2e on a real runner |
-| Content | `content/{notes,changelog,projects}` — Zod-validated at build               |
-| Routes  | `/`, `/styleguide`, `/styleguide/og`, `/notes/[slug]`                       |
-
-The home page is still a placeholder carrying the mark and the star field.
-Phase 2 replaces it.
+|         |                                                                          |
+| ------- | ------------------------------------------------------------------------ |
+| Stack   | Next 16 App Router, React 19, TS strict, Tailwind v4, `output: 'export'` |
+| Hosting | Vercel. `vercel.json` carries headers; nothing else is Vercel-specific   |
+| Tests   | 74 unit (vitest), 6 e2e (playwright)                                     |
+| CI      | `.github/workflows/ci.yml`                                               |
+| Content | `content/{notes,changelog,projects}` — Zod-validated at build            |
+| Routes  | `/`, `/styleguide`, `/styleguide/og`, `/notes/[slug]`                    |
 
 ### Lore corrections already made — do not re-introduce
 
-Two of these are errors the sources themselves repeat, and
-`tests/lore.test.ts` guards both with citations:
+Errors the sources themselves repeat. `tests/lore.test.ts` guards the first two
+with citations:
 
 - Merope is the **fourth-brightest** of the seven sisters (m4.18), **not the
-  faintest**. Celaeno and Asterope are dimmer. "Lost Pleiad" is mythological,
-  not photometric.
+  faintest**. Celaeno (5.46) and Asterope (5.76) are dimmer. "Lost Pleiad" is
+  mythological, not photometric.
 - The NASA Ames supercomputer Merope was built from **Pleiades** nodes, **not
   Columbia**.
 - The 1885 photographic plates did not reveal _Merope's_ nebula — Tempel found
   that visually in 1859. They revealed the extent of the nebulosity and the Maia
   nebula.
+- **Atlas and Pleione are not sisters.** They are the parents, they are in the
+  cluster and in the asterism, and they do not belong in any count of seven.
+  `sister` in `merope.ts` carries the distinction.

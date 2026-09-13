@@ -43,11 +43,15 @@ out of scope.
 ```
 src/design/     The design system. Kept self-contained so Phase 6 can lift it
                 into a package — nothing here may import from src/app.
-src/lib/        merope.ts (lore), site.ts (config), content/ (build-time loader)
+                tokens.css, fonts.ts, theme.ts, prose.css, and glyph.ts —
+                the one switch for how a star is drawn anywhere on the site.
+src/design/components/  Mark, Wordmark, StarField, HeroField, SkyBackdrop,
+                Catalogue, SiteHeader, SiteFooter, ThemeToggle, primitives
+src/lib/        merope.ts (lore), sky.ts (projection), site.ts (config),
+                field.ts (GENERATED — pnpm fetch:field), content/ (loader)
 content/        notes/, changelog/, projects/ — markdown with validated frontmatter
-src/design/components/  Mark, Wordmark, StarField, ThemeToggle, primitives
-scripts/        shoot.ts (screenshots), render-og.ts, check-content.ts,
-                static-server.ts
+scripts/        shoot.ts (screenshots), render-og.ts, fetch-field.ts,
+                check-content.ts, static-server.ts
 docs/           HANDOFF.md (start here), BRAND.md (direction),
                 LORE.md (verified facts + sources),
                 ROADMAP.md (phases and decisions)
@@ -86,6 +90,31 @@ the file is a valid 1200x630@2x PNG, but nothing can check that it is current.
   document, so it carries literal hex and a hand-copied ring path.
   `tests/design.test.ts` asserts it stays identical to `Mark.tsx`; if you change
   the mark, change both.
-- **Star positions are never hand-placed.** Every dot comes from published
-  coordinates in `merope.ts` via `sky.ts`. Three cluster members are missing and
-  must be added from SIMBAD before the Phase 2 hero ships — see `docs/LORE.md`.
+- **No star anywhere on this site is hand-placed** — not the nine, not the
+  labels, and not the 650 in the background. The cluster comes from published
+  coordinates in `merope.ts` via `sky.ts`; labels are solved around them by
+  `placeLabels`, because Atlas and Pleione are five arcminutes apart and a fixed
+  offset puts one label on another's star; the background is a real Gaia DR3
+  query (`pnpm fetch:field`). A scatter of invented dots would break this rule
+  _and_ be the particle starfield `docs/BRAND.md` rejected the Observatory
+  direction for. `tests/lore.test.ts` asserts the cluster is complete.
+- **How a star is drawn is one constant**, `STAR_SHAPE` in `src/design/glyph.ts`.
+  The hero cluster and the page backdrop are the same kind of object at two
+  scales; if they disagree about what a star looks like, the page has two star
+  systems in it. The file also carries a per-shape scale so the two glyphs are
+  matched by ink rather than by radius.
+- **A theme change is a 900ms cross-fade, and everything has to join it.**
+  `body` transitions its own colours; anything painting a token another way — an
+  SVG `fill` or `stroke`, a gradient `stop-color`, a background behind a cut-out
+  — snaps instantly unless it carries the `exposure` utility, and one element
+  snapping while the rest fades reads as a glitch. **A CSS gradient cannot be
+  transitioned at all**, which is why the clearing under the hero field is a flat
+  `background-color` behind a static `mask-image`, not a `radial-gradient` of
+  `--ground`. That bug shipped once and was visible as a patch of the old theme
+  around the cluster for the whole fade.
+- **`mag-${n}` cannot be written as a Tailwind class.** v4 scans source text and
+  never sees an interpolated name. The magnitude ramp has to arrive as
+  `var(--mag-N)` in an inline style — which is why `Annotation` takes a `style`.
+- **The nav renders `liveNav()`, not `NAV`.** Every item carries a `live` flag;
+  flipping it is the last step of building a route. The site never ships a dead
+  link or a stub page.

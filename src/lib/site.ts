@@ -13,10 +13,32 @@ export const SITE = {
   social: { github: 'https://github.com/ahmedsaed' },
 } as const;
 
-/** Top-level navigation. Order is deliberate: work, then words, then who. */
+/**
+ * Top-level navigation. Order is deliberate: work, then words, then who.
+ *
+ * `live` is the whole point. The nav shows only routes that actually resolve,
+ * so the site never ships a dead link or a stub page apologising for itself —
+ * it grows an item at a time as the phases land. Flipping a flag here is the
+ * last step of building the route, not a separate decision.
+ */
 export const NAV = [
-  { href: '/projects', label: 'Projects' },
-  { href: '/notes', label: 'Notes' },
-  { href: '/changelog', label: 'Changelog' },
-  { href: '/studio', label: 'Studio' },
+  { href: '/projects', label: 'Projects', live: false },
+  { href: '/notes', label: 'Notes', live: false },
+  { href: '/changelog', label: 'Changelog', live: false },
+  { href: '/studio', label: 'Studio', live: false },
+] as const;
+
+export const liveNav = () => NAV.filter((item) => item.live);
+
+/**
+ * The studio, in three sentences.
+ *
+ * Kept here rather than in the page because it is the one piece of copy that
+ * has to agree with the catalogue underneath it — the third sentence explains
+ * the scale the rows are measured on, and both come from the same file.
+ */
+export const STATEMENT = [
+  'Merope is a software studio of one.',
+  'It builds a small number of things, keeps them running afterwards, and writes down what that takes.',
+  'The catalogue says how alive each one is, on the scale a star’s brightness is measured on: lower is brighter, and six is the limit of what the eye can see unaided.',
 ] as const;

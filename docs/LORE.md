@@ -32,15 +32,19 @@ That is false. Apparent magnitudes of the seven sisters:
 
 | Star       | Magnitude | Rank  |
 | ---------- | --------- | ----- |
-| Alcyone    | 2.86      | 1     |
+| Alcyone    | 2.87      | 1     |
 | Electra    | 3.70      | 2     |
-| Maia       | 3.86      | 3     |
+| Maia       | 3.87      | 3     |
 | **Merope** | **4.18**  | **4** |
-| Taygeta    | 4.29      | 5     |
-| Celaeno    | 5.44      | 6     |
-| Asterope   | 5.64      | 7     |
+| Taygeta    | 4.30      | 5     |
+| Celaeno    | 5.46      | 6     |
+| Asterope   | 5.76      | 7     |
 
-_(Atlas at 3.62 and Pleione at 5.09 are the parents, not sisters.)_
+_(Atlas at 3.63 and Pleione at 5.09 are the parents, not sisters.)_
+
+All V magnitudes are SIMBAD's, sourced to Ducati (2002). An earlier draft of
+this table mixed values from several popular-astronomy pages and drifted by up
+to 0.12 mag — enough to be wrong, never enough to change the ranking.
 
 Merope is **fourth-brightest of the seven**, fifth-brightest in the cluster once
 Atlas is counted. Celaeno and Asterope are both considerably dimmer.
@@ -91,30 +95,83 @@ Used by `StarField` to place every dot. Stored sexagesimally in
 `src/lib/merope.ts` exactly as printed below, so a value can be checked against
 its source without undoing arithmetic.
 
-| Star    | Designation | RA (J2000)      | Dec (J2000)      | Mag  |
-| ------- | ----------- | --------------- | ---------------- | ---- |
-| Alcyone | 25 Tau      | 03h 47m 29.077s | +24° 06′ 18.49″  | 2.87 |
-| Electra | 17 Tau      | 03h 44m 52.537s | +24° 06′ 48.011″ | 3.70 |
-| Maia    | 20 Tau      | 03h 45m 49.607s | +24° 22′ 03.886″ | 3.87 |
-| Merope  | 23 Tau      | 03h 46m 19.586s | +23° 56′ 54.092″ | 4.18 |
-| Taygeta | 19 Tau      | 03h 45m 12.496s | +24° 28′ 02.210″ | 4.30 |
-| Celaeno | 16 Tau      | 03h 44m 48.215s | +24° 17′ 22.083″ | 5.45 |
+**Every row is SIMBAD**, ICRS at epoch J2000, read on 2026-09-13 and truncated
+to the milliarcsecond. One catalogue for all nine members on purpose: mixing
+sources means mixing epochs and reductions, and a table nobody can re-derive
+from a single query is a table nobody will check.
 
-### Three members are still missing
+| Star     | Designation | RA (J2000)      | Dec (J2000)      | Mag  | Sister |
+| -------- | ----------- | --------------- | ---------------- | ---- | ------ |
+| Alcyone  | 25 Tau      | 03h 47m 29.077s | +24° 06′ 18.488″ | 2.87 | yes    |
+| Atlas    | 27 Tau      | 03h 49m 09.743s | +24° 03′ 12.302″ | 3.63 | no     |
+| Electra  | 17 Tau      | 03h 44m 52.537s | +24° 06′ 48.016″ | 3.70 | yes    |
+| Maia     | 20 Tau      | 03h 45m 49.608s | +24° 22′ 03.878″ | 3.87 | yes    |
+| Merope   | 23 Tau      | 03h 46m 19.586s | +23° 56′ 54.092″ | 4.18 | yes    |
+| Taygeta  | 19 Tau      | 03h 45m 12.500s | +24° 28′ 02.186″ | 4.30 | yes    |
+| Pleione  | 28 Tau      | 03h 49m 11.217s | +24° 08′ 12.157″ | 5.09 | no     |
+| Celaeno  | 16 Tau      | 03h 44m 48.215s | +24° 17′ 22.083″ | 5.46 | yes    |
+| Asterope | 21 Tau      | 03h 45m 54.476s | +24° 33′ 16.236″ | 5.76 | yes    |
 
-**Asterope (21 Tau), Atlas (27 Tau) and Pleione (28 Tau)** are not in the data,
-and the star field is visibly incomplete without them — Atlas and Pleione form
-the cluster's distinctive eastern "handle", so Alcyone currently sits alone at
-the edge of the frame.
+SIMBAD resolves three of these under a different primary identifier — Alcyone as
+η Tau, Taygeta as q Tau, Asterope as 21 Tau with the name _Asterope_ among its
+identifiers. Query by Flamsteed number and the record is unambiguous.
 
-They are absent rather than approximated on purpose. The environment's network
-policy blocks the catalogue pages, and the one search result that did return a
-position for Asterope gave it **Alcyone's right ascension** — a number that is
-plausible, precise, wrong, and would have rendered a star chart that simply is
-not the sky. Guessing here would defeat the point of the file.
+**Atlas and Pleione are the parents, not sisters.** They belong in the asterism
+and in the data; they do not belong in any count of seven. `sister` in
+`merope.ts` carries the distinction so nothing has to re-derive it, and
+`tests/lore.test.ts` asserts seven of nine.
 
-**These must be added from SIMBAD before the Phase 2 hero ships.** The styleguide
-shows the gap in grease pencil so it cannot be forgotten.
+### Asterope is a double
+
+21 Tau has a companion, 22 Tau (A0Vn, V 6.42), about 150″ — two and a half
+arcminutes — away, computed from the two SIMBAD positions. Only 21 Tau is
+stored: at the size the field renders, two dots that close merge into one
+anyway, and the brighter component is the one the naked eye records.
+
+### The gap that used to be here, and how it was closed
+
+The first version of this table had six rows. Asterope, Atlas and Pleione were
+left out because the session that built it could not reach a catalogue — and the
+one search result that did return a position for Asterope gave it **Alcyone's
+right ascension**. Precise, plausible, wrong, and it would have rendered a star
+chart that simply is not the sky.
+
+It was visible in the drawing: Atlas and Pleione form the cluster's eastern
+"handle", so Alcyone sat alone at the edge of the frame and the asterism did not
+read as the Pleiades. The three were added from SIMBAD on 2026-09-13, and the
+remaining six were re-read from the same query at the same time so the whole
+table has one provenance.
+
+Two assertions in `tests/sky.test.ts` changed as a result, which is the test
+doing its job rather than failing: **Pleione**, not Alcyone, is now the
+easternmost member and therefore the leftmost dot, and **Asterope**, not
+Taygeta, is the northernmost. Merope remains furthest south, as she must —
+Atlas and Pleione are both north of her.
+
+### The background field
+
+The site is set on 650 more stars: the brightest Gaia DR3 records within 3° of
+the cluster down to G 11.2, minus the nine themselves. They live in
+`src/lib/field.ts`, which is **generated** — `pnpm fetch:field` runs the query
+and rewrites the file, and the query URL is printed at the top of it.
+
+They are drawn by `SkyBackdrop` across the whole page rather than inside the
+hero's frame, and at their own scale: the page spans three degrees where the
+hero's cluster spans one, so the same stars are about twice the size there. The
+two are **not in register**, deliberately — they are the wide plate and the
+detail print of one object, which is how an archive actually holds a thing.
+
+They are real for a reason that is a rule rather than a preference. `AGENTS.md`
+says star positions are never hand-placed, and `docs/BRAND.md` rejected the
+Observatory direction precisely because "every space-themed studio site is
+near-black with a particle starfield". A scatter of invented dots would break
+the first and be the second. The actual sky around Merope costs one query.
+
+Stored in decimal degrees rather than sexagesimal, because unlike everything
+else in this document these are positions to draw, not facts to state — nothing
+in the field is ever quoted in the UI. The magnitude limit is set by markup
+weight rather than by astronomy: every star is an SVG element, so the cut is "as
+deep as looks like sky and no deeper".
 
 ### Projection
 
@@ -127,7 +184,12 @@ in `tests/sky.test.ts`:
   width of a degree of declination. Dropping it stretches the cluster sideways
   by ~9% — invisible as a bug, wrong as a star chart.
 - **East is left.** Sky charts are drawn as seen looking up, not as maps.
-  Alcyone has the largest RA in the set, so it must render furthest left.
+  Pleione has the largest RA in the set, so it must render furthest left.
+- **The cluster is centred, not anchored.** It spans about 1.0° east–west and
+  0.61° north–south, and one scale serves both axes so the real shape survives.
+  That leaves the shorter axis unable to fill a square field, so it is centred
+  in it — anchoring both axes at their minimum pins the asterism to the top of
+  the frame and leaves a dead band beneath it.
 
 Dot radii are deliberately _not_ proportional to flux: true brightness ratios
 would make Alcyone roughly 13× Celaeno's area and the faint members would
@@ -216,6 +278,18 @@ racks became Merope rather than scrap.
 - [Merope Supercomputer — NASA NAS](https://www.nas.nasa.gov/hecc/resources/merope.html)
 - [NASA's Pleiades Supercomputer Upgraded, Harpertown Nodes Repurposed — NASA NAS, 2013](https://www.nas.nasa.gov/pubs/news/2013/09-19-13.html)
 - [HECC Legacy Systems — NASA NAS](https://www.nas.nasa.gov/hecc/resources/legacy.html)
+- [Gaia DR3 via VizieR (I/355/gaiadr3)](https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/355/gaiadr3) — the background field
+- [Tycho-2 / VizieR](https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/259/tyc2) — cross-checked against Gaia for the field
+- [SIMBAD — 21 Tau (Asterope)](https://simbad.u-strasbg.fr/simbad/sim-id?Ident=21+Tau)
+- [SIMBAD — 22 Tau](https://simbad.u-strasbg.fr/simbad/sim-id?Ident=22+Tau)
+- [SIMBAD — 27 Tau (Atlas)](https://simbad.u-strasbg.fr/simbad/sim-id?Ident=27+Tau)
+- [SIMBAD — 28 Tau (Pleione)](https://simbad.u-strasbg.fr/simbad/sim-id?Ident=28+Tau)
+- [SIMBAD — 25 Tau (Alcyone)](https://simbad.u-strasbg.fr/simbad/sim-id?Ident=25+Tau)
+- [SIMBAD — 17 Tau (Electra)](https://simbad.u-strasbg.fr/simbad/sim-id?Ident=17+Tau)
+- [SIMBAD — 20 Tau (Maia)](https://simbad.u-strasbg.fr/simbad/sim-id?Ident=20+Tau)
+- [SIMBAD — 23 Tau (Merope)](https://simbad.u-strasbg.fr/simbad/sim-id?Ident=23+Tau)
+- [SIMBAD — 19 Tau (Taygeta)](https://simbad.u-strasbg.fr/simbad/sim-id?Ident=19+Tau)
+- [SIMBAD — 16 Tau (Celaeno)](https://simbad.u-strasbg.fr/simbad/sim-id?Ident=16+Tau)
 - [Merope (star) — Wikipedia](<https://en.wikipedia.org/wiki/Merope_(star)>)
 - [Merope (23 Tauri): Star Facts — Star Facts](https://www.star-facts.com/merope/)
 - [Alcyone (Eta Tauri) — Star Facts](https://www.star-facts.com/alcyone/)
