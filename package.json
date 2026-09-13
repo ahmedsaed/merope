@@ -16,7 +16,8 @@
     "verify": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm build && pnpm test && pnpm test:e2e",
     "check:content": "tsx scripts/check-content.ts",
     "prebuild": "pnpm check:content",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "render:og": "tsx scripts/render-og.ts"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="32" height="32">
+  <!--
+    The Merope mark. Kept in sync by hand with src/design/components/Mark.tsx —
+    a static export has no way to render the component to a file, and
+    tests/design.test.ts asserts the two paths stay identical.
+
+    Colours are literal rather than tokens: a favicon renders outside the
+    document and cannot see CSS variables. These are the plate-theme values,
+    which read correctly against both light and dark browser chrome.
+  -->
+  <circle cx="15" cy="15" r="6" fill="#006d9f"/>
+  <path d="M15 3.2 C21.8 3.0 27.2 8.2 27.0 15.1 C26.8 21.9 21.6 27.1 14.8 26.9 C8.0 26.7 2.9 21.4 3.1 14.6 C3.3 8.2 8.3 3.4 14.6 3.2"
+        fill="none" stroke="#bf3d27" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -119,6 +119,80 @@ export const SUPERCOMPUTER = {
 } as const;
 
 /**
+ * The cluster, as coordinates.
+ *
+ * Stored sexagesimally exactly as the sources print them, so every value can be
+ * checked against the citation without undoing arithmetic. `src/lib/sky.ts`
+ * converts and projects.
+ *
+ * INCOMPLETE, DELIBERATELY. Three members are missing because their coordinates
+ * could not be verified from here — the network policy blocks the catalogue
+ * pages, and one search result returned Asterope with Alcyone's right ascension,
+ * which is exactly the kind of plausible-looking wrong number this file exists
+ * to keep out. Asterope (21 Tau), Atlas (27 Tau) and Pleione (28 Tau) must be
+ * added from SIMBAD before the hero ships in Phase 2. See docs/LORE.md.
+ */
+export const PLEIADES = [
+  {
+    name: 'Alcyone',
+    designation: '25 Tau',
+    ra: { h: 3, m: 47, s: 29.077 },
+    dec: { d: 24, m: 6, s: 18.49 },
+    magnitude: 2.87,
+    sister: true,
+  },
+  {
+    name: 'Electra',
+    designation: '17 Tau',
+    ra: { h: 3, m: 44, s: 52.537 },
+    dec: { d: 24, m: 6, s: 48.011 },
+    magnitude: 3.7,
+    sister: true,
+  },
+  {
+    name: 'Maia',
+    designation: '20 Tau',
+    ra: { h: 3, m: 45, s: 49.607 },
+    dec: { d: 24, m: 22, s: 3.886 },
+    magnitude: 3.87,
+    sister: true,
+  },
+  {
+    name: 'Merope',
+    designation: '23 Tau',
+    ra: { h: 3, m: 46, s: 19.586 },
+    dec: { d: 23, m: 56, s: 54.092 },
+    magnitude: 4.18,
+    sister: true,
+  },
+  {
+    name: 'Taygeta',
+    designation: '19 Tau',
+    ra: { h: 3, m: 45, s: 12.496 },
+    dec: { d: 24, m: 28, s: 2.21 },
+    magnitude: 4.3,
+    sister: true,
+  },
+  {
+    name: 'Celaeno',
+    designation: '16 Tau',
+    ra: { h: 3, m: 44, s: 48.215 },
+    dec: { d: 24, m: 17, s: 22.083 },
+    magnitude: 5.45,
+    sister: true,
+  },
+] as const;
+
+export type PleiadesStar = (typeof PLEIADES)[number];
+
+/** Members whose coordinates are still outstanding. Named so the gap is visible. */
+export const PLEIADES_MISSING = [
+  'Asterope (21 Tau)',
+  'Atlas (27 Tau)',
+  'Pleione (28 Tau)',
+] as const;
+
+/**
  * Magnitude as a project status system.
  *
  * Honest, because it is inverted the way the real scale is: a lower number

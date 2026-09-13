@@ -53,9 +53,17 @@ site rather than shipping dead links or empty stubs.
 
 ---
 
-## Phase 1 — Identity & design system
+## Phase 1 — Identity & design system ✅
 
 The visual language, reviewed in isolation before any page depends on it.
+
+Built: the mark and wordmark, the star field projected from real coordinates,
+prose styles with Shiki bound to the theme attribute, the primitives, the
+favicon, and a generated Open Graph card. All on `/styleguide`.
+
+**Carried into Phase 2:** three Pleiades members still need coordinates from
+SIMBAD before the hero can ship (`docs/LORE.md`), and how far the plate furniture
+goes is still a judgement call — currently pitched at the restrained end.
 
 - **The wordmark: option D, the circled star.** A dot ringed in grease pencil —
   the gesture an astronomer made on a plate to say _this one_. It is the only

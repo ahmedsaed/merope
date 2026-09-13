@@ -85,6 +85,54 @@ sources: it genuinely varies by about a hundredth of a magnitude.
 **The spectral type is load-bearing.** B6IV(e) is blue-white, and that is where
 `--accent` comes from. The palette is the star's spectrum, not a mood board.
 
+## The cluster, as coordinates
+
+Used by `StarField` to place every dot. Stored sexagesimally in
+`src/lib/merope.ts` exactly as printed below, so a value can be checked against
+its source without undoing arithmetic.
+
+| Star    | Designation | RA (J2000)      | Dec (J2000)      | Mag  |
+| ------- | ----------- | --------------- | ---------------- | ---- |
+| Alcyone | 25 Tau      | 03h 47m 29.077s | +24° 06′ 18.49″  | 2.87 |
+| Electra | 17 Tau      | 03h 44m 52.537s | +24° 06′ 48.011″ | 3.70 |
+| Maia    | 20 Tau      | 03h 45m 49.607s | +24° 22′ 03.886″ | 3.87 |
+| Merope  | 23 Tau      | 03h 46m 19.586s | +23° 56′ 54.092″ | 4.18 |
+| Taygeta | 19 Tau      | 03h 45m 12.496s | +24° 28′ 02.210″ | 4.30 |
+| Celaeno | 16 Tau      | 03h 44m 48.215s | +24° 17′ 22.083″ | 5.45 |
+
+### Three members are still missing
+
+**Asterope (21 Tau), Atlas (27 Tau) and Pleione (28 Tau)** are not in the data,
+and the star field is visibly incomplete without them — Atlas and Pleione form
+the cluster's distinctive eastern "handle", so Alcyone currently sits alone at
+the edge of the frame.
+
+They are absent rather than approximated on purpose. The environment's network
+policy blocks the catalogue pages, and the one search result that did return a
+position for Asterope gave it **Alcyone's right ascension** — a number that is
+plausible, precise, wrong, and would have rendered a star chart that simply is
+not the sky. Guessing here would defeat the point of the file.
+
+**These must be added from SIMBAD before the Phase 2 hero ships.** The styleguide
+shows the gap in grease pencil so it cannot be forgotten.
+
+### Projection
+
+`src/lib/sky.ts` uses a flat tangent-plane projection. Over a cluster spanning
+about a degree the spherical correction is far below a pixel, so a gnomonic
+projection would be false precision. Two things do matter, and both are asserted
+in `tests/sky.test.ts`:
+
+- **The `cos(dec)` term.** At +24° a degree of right ascension is about 91% the
+  width of a degree of declination. Dropping it stretches the cluster sideways
+  by ~9% — invisible as a bug, wrong as a star chart.
+- **East is left.** Sky charts are drawn as seen looking up, not as maps.
+  Alcyone has the largest RA in the set, so it must render furthest left.
+
+Dot radii are deliberately _not_ proportional to flux: true brightness ratios
+would make Alcyone roughly 13× Celaeno's area and the faint members would
+disappear. The scale is compressed, with the ordering preserved.
+
 ## The myth — the Lost Pleiad
 
 Merope is the most commonly identified "Lost Pleiad". Her sisters consorted with
@@ -170,6 +218,11 @@ racks became Merope rather than scrap.
 - [HECC Legacy Systems — NASA NAS](https://www.nas.nasa.gov/hecc/resources/legacy.html)
 - [Merope (star) — Wikipedia](<https://en.wikipedia.org/wiki/Merope_(star)>)
 - [Merope (23 Tauri): Star Facts — Star Facts](https://www.star-facts.com/merope/)
+- [Alcyone (Eta Tauri) — Star Facts](https://www.star-facts.com/alcyone/)
+- [Electra (17 Tauri) — Star Facts](https://www.star-facts.com/electra/)
+- [Maia (20 Tauri) — Star Facts](https://www.star-facts.com/maia/)
+- [Taygeta (19 Tauri) — Star Facts](https://www.star-facts.com/taygeta/)
+- [Celaeno (16 Tauri) — Wikipedia](<https://en.wikipedia.org/wiki/Celaeno_(star)>)
 - [Pleiades — Wikipedia](https://en.wikipedia.org/wiki/Pleiades)
 - [Messier 45: Pleiades — Messier Objects](https://www.messier-objects.com/messier-45-pleiades/)
 - [Merope (Pleiad) — Wikipedia](<https://en.wikipedia.org/wiki/Merope_(Pleiad)>)

@@ -42,7 +42,9 @@ src/design/     The design system. Kept self-contained so Phase 6 can lift it
                 into a package — nothing here may import from src/app.
 src/lib/        merope.ts (lore), site.ts (config), content/ (build-time loader)
 content/        notes/, changelog/, projects/ — markdown with validated frontmatter
-scripts/        shoot.ts (screenshots), check-content.ts, static-server.ts
+src/design/components/  Mark, Wordmark, StarField, ThemeToggle, primitives
+scripts/        shoot.ts (screenshots), render-og.ts, check-content.ts,
+                static-server.ts
 docs/           BRAND.md (direction), LORE.md (verified facts + sources),
                 ROADMAP.md (phases and decisions)
 ```
@@ -57,6 +59,13 @@ screenshots of every route in both themes at both breakpoints to `.shots/`, and
 fails on any console error. A green build says nothing about whether a page is
 any good.
 
+**The OG card is generated, not hand-drawn.** It is a real route at
+`/styleguide/og` built from the same components as everything else;
+`pnpm build && pnpm render:og` screenshots it to `src/app/opengraph-image.png`,
+which is committed because the build cannot assume a browser. Re-run it whenever
+the mark, the palette, the thesis or the star field changes — the tests check
+the file is a valid 1200x630@2x PNG, but nothing can check that it is current.
+
 ## Traps already hit here
 
 - **Tailwind v4 tree-shakes `@theme` variables** that no generated utility
@@ -69,3 +78,10 @@ any good.
 - **YAML parses an unquoted `date: 2026-09-13` into a `Date`**, not a string, so
   frontmatter schemas must accept both.
 - Next 16 removed the `eslint` key from `next.config.ts`; lint is its own step.
+- **A favicon cannot read CSS variables.** `src/app/icon.svg` renders outside the
+  document, so it carries literal hex and a hand-copied ring path.
+  `tests/design.test.ts` asserts it stays identical to `Mark.tsx`; if you change
+  the mark, change both.
+- **Star positions are never hand-placed.** Every dot comes from published
+  coordinates in `merope.ts` via `sky.ts`. Three cluster members are missing and
+  must be added from SIMBAD before the Phase 2 hero ships — see `docs/LORE.md`.
