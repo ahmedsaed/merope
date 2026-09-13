@@ -27,48 +27,85 @@ scaffolding that proves the pipeline works.
 
 ---
 
+## The landing page is not a phase
+
+Worth stating before the phases, because it is the thing most likely to be
+misread. The home page is seven blocks, and they do not depend on the same
+things — so it is the **assembly point three phases contribute to**, not one
+phase's deliverable.
+
+| Block                               | Needs           | Lands in |
+| ----------------------------------- | --------------- | -------- |
+| Header — wordmark, nav, plate/sky   | design system   | 2        |
+| Hero — star field, wordmark, thesis | design system   | 2        |
+| Studio statement — three sentences  | nothing         | 2        |
+| The catalogue — projects            | project content | 2        |
+| Recent notes — three, then a link   | content engine  | 3        |
+| Newsletter — one field              | Buttondown      | 4        |
+| Footer — coordinate line            | nothing         | 2        |
+
+Phase 2 still ships a complete, launchable page. Phase 3 inserts the notes
+strip above the footer; Phase 4 inserts the newsletter below it.
+
+**The nav only shows what resolves.** In Phase 2 there is no `/notes` or
+`/changelog` to link to, so those items do not appear. The nav grows with the
+site rather than shipping dead links or empty stubs.
+
+---
+
 ## Phase 1 — Identity & design system
 
 The visual language, reviewed in isolation before any page depends on it.
 
-**Open questions to settle first:** whether the wordmark needs a mark at all;
-how far the plate furniture goes before it becomes costume; and whether `plate`
-or `sky` is the true default for a first-time visitor.
-
-- Wordmark. Merope set in Newsreader is already close; the question is whether
-  it needs a mark at all, and if so whether it is the plate's registration
-  cross, a magnitude dot, or nothing.
+- **The wordmark: option D, the circled star.** A dot ringed in grease pencil —
+  the gesture an astronomer made on a plate to say _this one_. It is the only
+  candidate that stays legible at 16px and uses both accents for their real
+  meanings. Subdomains inherit the ring and change what sits inside it.
+- **The asterism is not the mark.** The seven sisters with Merope circled is the
+  most meaningful drawing available and the most fragile — it collapses into
+  noise at favicon size. It lives in the hero, at a size where it works.
 - Prose styles: headings, lists, blockquotes, code blocks wired to the
   plate/sky variables (Shiki emits both themes already; they are not yet bound
   to the theme attribute).
 - The plate furniture: hairline grids, registration marks, margin lettering,
-  the grain calibrated per theme.
-- Primitives: `Annotation`, `CatalogTable`, `Rule`, `MagnitudeDot`, `Field`.
+  the grain calibrated per theme. **Open:** how far this goes before it becomes
+  costume. Default to the restrained end.
+- Primitives: `Annotation`, `Rule`, `MagnitudeDot`, `Field`, `StarField`.
 - Favicon, OG template, `theme-color` per theme.
 
 **Review surface:** `/styleguide`, extended.
 
 ---
 
-## Phase 2 — The landing page
+## Phase 2 — Home page, first assembly
 
-- Hero: the wordmark over a Pleiades field, Merope circled in grease pencil.
-  The field is real coordinates, not decoration.
-- The catalogue: projects as a star catalogue — designation, magnitude, kind,
-  first light. The centrepiece, and the thing nobody else's landing page has.
+- **Hero: a real star field.** The Pleiades at true relative positions with
+  Merope circled — the asterism given room to work. Decided: the hero carries
+  the field, not type alone.
+- **The catalogue.** Two treatments built and put side by side on `/styleguide`
+  with the same real data, because a dense bordered table risks reading as a
+  spreadsheet, which is the wrong register for a studio:
+  1. _Catalogue_ — tabular, dense, aligned columns.
+  2. _Index_ — generous rows, project name large in Newsreader, mono data as
+     aligned marginalia. Tabular quality from alignment, not borders.
+     Pick by looking. Fallback is a stacked list with the magnitude dot as the
+     only tabular element.
 - A studio statement that is three sentences, not a manifesto.
-- Footer with the coordinate line.
-- Motion, kept minimal: the theme change as a long exposure, the nebula
-  responding very slightly to the pointer. Nothing that blocks reading.
+- Header and footer, with the coordinate line.
 
-**Open question:** how much the hero should move. My instinct is "almost not at
-all" — the restraint is the distinctive part.
+**Motion, decided: almost none.** The theme change gets a long exposure — a slow
+cross-fade, because that is what a re-exposure looks like — and the nebula
+behind the wordmark responds very slightly to the pointer. No scroll-triggered
+reveals, nothing that blocks reading. On a page this typographic, restraint is
+the distinctive part; movement would make it look like every other launch page.
 
 ---
 
 ## Phase 3 — Content engine
 
 - `/notes` index + note pages with real typography.
+- **Adds to the home page:** the recent-notes strip, above the footer.
+- **Adds to the nav:** `/notes`, `/changelog`, `/studio` — they resolve now.
 - `/changelog` — combined feed across projects, plus per-project views.
 - `/projects/[slug]` — project pages, with their releases inline.
 - MDX component library for writing.
@@ -79,6 +116,8 @@ all" — the restraint is the distinctive part.
 ---
 
 ## Phase 4 — Newsletter & measurement
+
+**Adds to the home page:** the newsletter block, below the notes strip.
 
 - Buttondown integration. A static site cannot POST to it directly without
   exposing a key, so: either Buttondown's hosted embed, or a tiny serverless

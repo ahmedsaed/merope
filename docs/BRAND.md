@@ -148,6 +148,31 @@ If a third accent ever seems necessary, the layout is probably wrong.
 
 ---
 
+## The wordmark
+
+**Decided: the circled star.** A dot with a grease-pencil ring around it —
+precisely the gesture an astronomer made on a plate to say _this one_. It is the
+studio thesis as a drawing: the object, and the act of picking it out.
+
+Why this one, over five alternatives:
+
+- It is the only candidate that is both meaningful and legible at 16px. A mark
+  that dies in a browser tab is not a mark, and this one has to serve as the
+  favicon for every project subdomain.
+- It uses both accents for their actual meanings — the star's colour, and the
+  pencil that marks attention — rather than decoratively.
+- The open gap in the ring keeps it hand-drawn rather than geometric.
+- Subdomains inherit the ring and change what sits inside it.
+
+**The asterism stays out of the mark.** Seven sisters at true relative positions
+with Merope circled tells the whole story in one glyph, and is by some distance
+the most meaningful option — but it collapses into noise at favicon size. It
+belongs in the hero, where it can be large enough to work. Rejected as the mark,
+kept as the illustration.
+
+The catalogue designation (`23 Tau · M45`) set under the name is a **lockup, not
+an alternative** — it pairs with the mark in a header and is useless as an icon.
+
 ## The easter eggs
 
 The rule: **the lore is in the details and the vocabulary, never in the way.**
