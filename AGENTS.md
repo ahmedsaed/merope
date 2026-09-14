@@ -46,7 +46,8 @@ src/design/     The design system. Kept self-contained so Phase 6 can lift it
                 tokens.css, fonts.ts, theme.ts, prose.css, and glyph.ts —
                 the one switch for how a star is drawn anywhere on the site.
 src/design/components/  Mark, Wordmark, StarField, HeroField, SkyBackdrop,
-                Catalogue, SiteHeader, SiteFooter, ThemeToggle, primitives
+                Page, Margin, Catalogue, NoteList, ReleaseList, SiteHeader,
+                SiteFooter, ThemeToggle, primitives
 src/lib/        merope.ts (lore), sky.ts (projection), site.ts (config),
                 field.ts (GENERATED — pnpm fetch:field), content/ (loader)
 content/        notes/, changelog/, projects/ — markdown with validated frontmatter
@@ -148,6 +149,16 @@ the file is a valid 1200x630@2x PNG, but nothing can check that it is current.
   they shipped typewriter apostrophes directly above prose that had real ones.
   `content/schema.ts` typesets them on the way in — add new prose fields with
   the `prose()` helper, not a bare `z.string()`.
+- **A single-column CSS grid does not clamp its child.** An implicit grid
+  column is `auto`, which resolves to max-content — so `.prose`, which carries
+  `max-width: var(--measure-prose)`, asked for 608px inside a 375px phone and
+  took the page sideways with it. Use `grid-cols-1`
+  (`repeat(1, minmax(0, 1fr))`) on the single-column case, not nothing.
+- **The contents list and the rendered anchors must use the same slugger.**
+  `extractHeadings` imports `github-slugger`, which is what `rehype-slug` uses,
+  and it is a direct dependency for exactly that reason. A hand-rolled slugify
+  agrees on every simple heading and then disagrees on the first one with an
+  ampersand — `Notes & asides` is `notes--asides`, with two hyphens.
 - **Check layout at 1920 as well as 1440.** A reading column left-aligned
   inside the wide shell sat 175px left of centre on a 1920px screen — the header
   and footer spanned the shell, the text used 60% of it, and the page read as

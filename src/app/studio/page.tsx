@@ -26,7 +26,7 @@ export const metadata: Metadata = {
  */
 export default function StudioPage() {
   return (
-    <Page width="reading">
+    <Page>
       <div className="py-14">
         <section>
           <SectionHead title="Studio" />

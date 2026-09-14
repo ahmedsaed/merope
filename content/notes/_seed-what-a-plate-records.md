@@ -21,3 +21,18 @@ const themes = ['plate', 'sky'] as const;
 
 A plate is a negative. Stars come out dark on pale stock. So the light theme is
 not a concession to daylight — it is the archive, and it is correct.
+
+### Why the toggle says so
+
+Two words rather than two icons, because a sun and a moon would claim these are
+light and dark modes, which is the one thing they are not.
+
+## What the archive kept
+
+Between 1885 and 1888 the Henrys' plates and Isaac Roberts' revealed the full
+complexity of the nebulae around the cluster.
+
+## Notes & asides
+
+A heading with an ampersand, kept deliberately: the contents list slugs it with
+the same slugger that generates the anchor, so the two agree.
