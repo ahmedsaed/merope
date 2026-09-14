@@ -169,6 +169,12 @@ the file is a valid 1200x630@2x PNG, but nothing can check that it is current.
   though it had slid sideways. It was wrong at 1440 too; the wider screen just
   made it obvious. `Page` takes `width="reading"` for single-column pages, which
   centres the measure while leaving the masthead where it is.
+- **A `screenful` that sits under the header needs `--screen-offset`.** Without
+  it the page is exactly one header taller than the viewport and the snap marker
+  at the section's top edge pulls the masthead off-screen the moment the scroll
+  settles. The hero and the 404 both carry
+  `[--screen-offset:var(--header-block)]` for this reason; a section further
+  down the page does not.
 - **Seed draft content before trusting any scroll or layout behaviour.** With
   one catalogue row every section fits a screen and the bug above is invisible.
   `draft: true` builds in `pnpm dev` and is excluded from `pnpm build` and

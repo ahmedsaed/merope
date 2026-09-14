@@ -221,20 +221,23 @@ Someone who has should find a dozen rewards.
 
 Planned, cheap, high delight:
 
-- The projects laid out as a **star catalogue** — designation, magnitude, kind,
+- ✅ The projects laid out as a **star catalogue** — designation, magnitude, kind,
   first light — instead of three cards with icons. More information, less
   template, and the centrepiece of the landing page.
-- **"First light"** as the field name for a launch date. It is what astronomers
+- ✅ **"First light"** as the field name for a launch date. It is what astronomers
   call a telescope's first real image.
-- A console banner on load with the real coordinates and `23 Tau`.
-- `/humans.txt` written as an observation log.
-- **404**: _"No object at these coordinates."_
+- ✅ A console banner on load with the real coordinates and `23 Tau`.
+- ✅ `/humans.txt` written as an observing log — generated from `merope.ts`
+  and the content layer, so it cannot claim four projects on a site with one.
+- ✅ **404**: _"No object at these coordinates."_ Deliberately no star field:
+  a sky full of objects under that sentence would contradict it. An empty
+  plate is the honest image.
 - `Cmd+K` palette named **finder scope** — the small telescope used to aim the
   big one.
 - Changelog entries dated in ISO _and_ Julian date.
 - **"An Interstellar Interloper"** — the actual title of the Herbig & Simon paper
   on IC 349. Too good not to use somewhere.
-- Footer: the coordinate line, and one line about the Pleiades' spare parts.
+- ✅ Footer: the coordinate line, and one line about the Pleiades' spare parts.
 
 ### The failure mode to avoid
 

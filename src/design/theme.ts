@@ -27,6 +27,30 @@ export const THEME_LABELS: Record<Theme, { name: string; meaning: string }> = {
 export const THEME_PREMISE = 'Two ways of recording the same sky.';
 
 /**
+ * The console banner.
+ *
+ * `docs/BRAND.md` asks for the real coordinates on load, and this is the whole
+ * of it: one line for anyone who opens the console, styled so it reads as a
+ * plate caption rather than as log output.
+ *
+ * Deliberately a `log` and not a `warn`. The screenshot harness fails the build
+ * on any console error, and a site that shouts at its own verification tooling
+ * to make a joke has got the priorities backwards.
+ */
+export const CONSOLE_BANNER_SCRIPT = (line: string, thesis: string) =>
+  `
+(function () {
+  try {
+    console.log(
+      "%c" + ${JSON.stringify(line)} + "%c\\n" + ${JSON.stringify(thesis)},
+      "font-family:ui-monospace,monospace;letter-spacing:0.14em",
+      "font-style:italic;opacity:0.7"
+    );
+  } catch (e) {}
+})();
+`.trim();
+
+/**
  * Runs blocking, before first paint, to stop the wrong theme flashing.
  *
  * Deliberately does NOT write a default: with no stored choice the attribute
