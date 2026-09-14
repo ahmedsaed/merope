@@ -68,14 +68,28 @@ screenshots of every route in both themes at both breakpoints to `.shots/`, and
 fails on any console error. A green build says nothing about whether a page is
 any good.
 
-**The OG card and the app icon are generated, not hand-drawn.** Both are real
-routes — `/styleguide/og` and `/styleguide/icon` — built from the same
-components as everything else; `pnpm build && pnpm render:og` screenshots them
-to `src/app/opengraph-image.png` and `src/app/apple-icon.png`, which are
-committed because the build cannot assume a browser. Re-run it whenever the
-mark, the palette, the thesis or the star field changes — the tests check the
-files are valid PNGs at the right sizes, but nothing can check that they are
+**Every image asset is generated, not hand-drawn.** `pnpm build && pnpm
+render:og` writes all three, and they are committed because the build cannot
+assume a browser:
+
+- `opengraph-image.png` — screenshot of `/styleguide/og`
+- `apple-icon.png` — screenshot of `/styleguide/icon`
+- `favicon.ico` — `icon.svg` rasterised to 16, 32 and 48 on a canvas
+
+Re-run it whenever the mark, the palette, the thesis or the star field changes.
+The tests check the files are valid, the right sizes, and that the favicon
+actually contains the mark's colours — but nothing can check that they are
 current.
+
+**`favicon.ico` was the framework's default for three phases.** A black disc
+with a white triangle, shipping as this site's own icon, while every check
+passed — because nothing looked inside the file. `tests/design.test.ts` now
+decodes the 16px entry and asserts it contains the accent blue and the
+grease-pencil red. It is also rasterised from `icon.svg` rather than
+screenshotted from a page: `omitBackground` does not remove a background the
+page itself paints, and between `body`, the grain overlay and `color-scheme`
+the icon kept coming out as an opaque warm tile — a light square on dark
+browser chrome.
 
 ## Traps already hit here
 

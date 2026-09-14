@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { inflateSync } from 'node:zlib';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -93,5 +94,128 @@ describe('theme-color matches the themes', () => {
       );
       expect(source).toContain('THEME_COLORS');
     }
+  });
+});
+
+/* ------------------------------------------------------------------------ */
+
+/** One image inside an `.ico`: the declared size and its raw payload. */
+function icoEntries(buf: Buffer): { size: number; payload: Buffer }[] {
+  expect(buf.readUInt16LE(0), 'reserved field').toBe(0);
+  expect(buf.readUInt16LE(2), 'type — 1 is an icon').toBe(1);
+
+  const count = buf.readUInt16LE(4);
+  const entries: { size: number; payload: Buffer }[] = [];
+  for (let i = 0; i < count; i += 1) {
+    const dir = 6 + i * 16;
+    const size = buf.readUInt8(dir) || 256;
+    const length = buf.readUInt32LE(dir + 8);
+    const offset = buf.readUInt32LE(dir + 12);
+    entries.push({ size, payload: buf.subarray(offset, offset + length) });
+  }
+  return entries;
+}
+
+/**
+ * Enough of a PNG decoder to read the pixels back out.
+ *
+ * Worth the thirty lines: without it the only thing a test can say about an
+ * icon file is that it exists and is the right shape, which is exactly what was
+ * true of the framework's default favicon while it shipped as this site's own.
+ */
+function decodePng(buf: Buffer): { width: number; height: number; rgba: Buffer } {
+  let pos = 8;
+  let width = 0;
+  let height = 0;
+  const idat: Buffer[] = [];
+
+  while (pos < buf.length) {
+    const length = buf.readUInt32BE(pos);
+    const type = buf.subarray(pos + 4, pos + 8).toString('ascii');
+    const data = buf.subarray(pos + 8, pos + 8 + length);
+    if (type === 'IHDR') {
+      width = data.readUInt32BE(0);
+      height = data.readUInt32BE(4);
+      expect(data.readUInt8(8), 'bit depth').toBe(8);
+      expect(data.readUInt8(9), 'colour type — 6 is RGBA').toBe(6);
+    }
+    if (type === 'IDAT') idat.push(Buffer.from(data));
+    pos += 12 + length;
+  }
+
+  const raw = inflateSync(Buffer.concat(idat));
+  const stride = width * 4;
+  const rgba = Buffer.alloc(stride * height);
+
+  for (let y = 0; y < height; y += 1) {
+    const filter = raw[y * (stride + 1)];
+    const line = raw.subarray(y * (stride + 1) + 1, y * (stride + 1) + 1 + stride);
+    for (let x = 0; x < stride; x += 1) {
+      const a = x >= 4 ? rgba[y * stride + x - 4] : 0;
+      const b = y > 0 ? rgba[(y - 1) * stride + x] : 0;
+      const c = x >= 4 && y > 0 ? rgba[(y - 1) * stride + x - 4] : 0;
+      let value = line[x];
+      if (filter === 1) value += a;
+      else if (filter === 2) value += b;
+      else if (filter === 3) value += (a + b) >> 1;
+      else if (filter === 4) {
+        const p = a + b - c;
+        const pa = Math.abs(p - a);
+        const pb = Math.abs(p - b);
+        const pc = Math.abs(p - c);
+        value += pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+      }
+      rgba[y * stride + x] = value & 0xff;
+    }
+  }
+
+  return { width, height, rgba };
+}
+
+/** How far apart two colours are, crudely but sufficiently. */
+const distance = (a: number[], b: number[]) =>
+  Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
+
+describe("the favicon is this site's mark, not a leftover", () => {
+  const ico = readFileSync(join(root, 'src', 'app', 'favicon.ico'));
+  const entries = icoEntries(ico);
+
+  it('carries the sizes a browser actually asks for', () => {
+    // Not one big image for the browser to resample. The ring thickens as the
+    // mark shrinks, and downscaling a 256px render throws that away.
+    expect(entries.map((e) => e.size)).toEqual([16, 32, 48]);
+  });
+
+  it("draws the mark at 16px, in the mark's own colours", () => {
+    /**
+     * The test that matters. `src/app/favicon.ico` was the framework's default
+     * — a black disc with a white triangle — through three phases of work, and
+     * every check the project had still passed, because none of them looked
+     * inside the file.
+     */
+    const smallest = entries.find((e) => e.size === 16);
+    expect(smallest).toBeDefined();
+
+    const { width, height, rgba } = decodePng(smallest!.payload);
+    expect([width, height]).toEqual([16, 16]);
+
+    const star = [0x00, 0x6d, 0x9f]; // --accent, resolved
+    const pencil = [0xbf, 0x3d, 0x27]; // --mark, resolved
+    let hasStar = false;
+    let hasPencil = false;
+    let opaquePixels = 0;
+
+    for (let i = 0; i < rgba.length; i += 4) {
+      if (rgba[i + 3] < 128) continue;
+      opaquePixels += 1;
+      const pixel = [rgba[i], rgba[i + 1], rgba[i + 2]];
+      if (distance(pixel, star) < 90) hasStar = true;
+      if (distance(pixel, pencil) < 90) hasPencil = true;
+    }
+
+    expect(hasStar, 'no accent-coloured star in the favicon').toBe(true);
+    expect(hasPencil, 'no grease-pencil ring in the favicon').toBe(true);
+    // A mark, not a filled tile: the corners outside the ring stay clear.
+    expect(opaquePixels).toBeLessThan(16 * 16 * 0.9);
   });
 });
