@@ -21,6 +21,15 @@ const SIZE = { width: 1200, height: 630 };
 const OUT_PNG = join(process.cwd(), 'src', 'app', 'opengraph-image.png');
 const OUT_ALT = join(process.cwd(), 'src', 'app', 'opengraph-image.alt.txt');
 
+/**
+ * The app icon, shot from the same `Mark` as everything else rather than
+ * exported by hand. iOS will not take an SVG for a home-screen icon, so this
+ * has to be a PNG, and a committed PNG that nothing regenerates is a PNG that
+ * drifts from the mark it is supposed to be.
+ */
+const ICON = { size: 180, route: '/styleguide/icon', selector: '#app-icon' };
+const OUT_ICON = join(process.cwd(), 'src', 'app', 'apple-icon.png');
+
 const ALT_TEXT =
   'Merope, set in a light serif on warm paper, beside a chart of the Pleiades with Merope circled in red. The line reads: the star is not the point, what it lights up is.';
 
@@ -53,6 +62,24 @@ async function main() {
   await card.screenshot({ path: OUT_PNG });
   await writeFile(OUT_ALT, `${ALT_TEXT}\n`, 'utf8');
 
+  // The icon is captured in its own context: it is a different size, and it
+  // must be opaque plate regardless of what the card wanted.
+  const iconContext = await browser.newContext({
+    viewport: { width: ICON.size, height: ICON.size },
+    colorScheme: 'light',
+    deviceScaleFactor: 1,
+  });
+  const iconPage = await iconContext.newPage();
+  iconPage.on('pageerror', (err) => problems.push(err.message));
+  await iconPage.goto(`${origin}${ICON.route}`, { waitUntil: 'networkidle' });
+  await iconPage.evaluate(() => document.fonts.ready);
+
+  const icon = iconPage.locator(ICON.selector);
+  if ((await icon.count()) !== 1) {
+    throw new Error(`Expected exactly one ${ICON.selector} on ${ICON.route}`);
+  }
+  await icon.screenshot({ path: OUT_ICON });
+
   await browser.close();
   server.close();
 
@@ -63,6 +90,7 @@ async function main() {
 
   console.log(`og card  → src/app/opengraph-image.png (${SIZE.width}×${SIZE.height} @2x)`);
   console.log('alt text → src/app/opengraph-image.alt.txt');
+  console.log(`app icon → src/app/apple-icon.png (${ICON.size}×${ICON.size})`);
 }
 
 main().catch((err) => {

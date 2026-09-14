@@ -4,6 +4,22 @@ export type Theme = (typeof THEMES)[number];
 export const THEME_STORAGE_KEY = 'merope.theme';
 
 /**
+ * The two grounds as hex, for the places that cannot read CSS.
+ *
+ * `theme-color` in a `<meta>` tag and `background_color` in a web app manifest
+ * are read by browser chrome and by the OS, neither of which has a stylesheet.
+ * These mirror `--plate-stock` and `--sky-void` in tokens.css, which are the
+ * authoritative values and are written in oklch.
+ *
+ * **Change one, change both.** It is the same hazard as `icon.svg`, which
+ * carries a hand-copied hex for the same reason — a favicon renders outside the
+ * document too. Keeping them in one constant at least means there is a single
+ * place to look, instead of a literal buried in a viewport export and another
+ * in a manifest.
+ */
+export const THEME_COLORS = { plate: '#f6f3ed', sky: '#090e17' } as const;
+
+/**
  * What the control says when someone asks it.
  *
  * The toggle is two glyphs, so this is the only place the idea is spelled out —

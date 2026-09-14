@@ -67,10 +67,31 @@ describe('the Open Graph card', () => {
 });
 
 describe('theme-color matches the themes', () => {
+  const theme = readFileSync(join(root, 'src', 'design', 'theme.ts'), 'utf8');
   const layout = readFileSync(join(root, 'src', 'app', 'layout.tsx'), 'utf8');
+  const manifest = readFileSync(join(root, 'src', 'app', 'manifest.ts'), 'utf8');
 
-  it('uses the resolved ground colours, not approximations', () => {
-    expect(layout).toContain('#f6f3ed'); // plate --ground
-    expect(layout).toContain('#090e17'); // sky --ground
+  /**
+   * `theme-color` and the manifest's `background_color` are read by browser
+   * chrome and by the OS, neither of which has a stylesheet — so both need hex,
+   * and tokens.css is authoritative and written in oklch. The hazard is the
+   * same one `icon.svg` has: a hand-converted copy that drifts from the value
+   * it mirrors. There is one copy, and this is what pins it.
+   */
+  it('keeps the resolved ground colours, not approximations', () => {
+    expect(theme).toContain('#f6f3ed'); // plate --plate-stock
+    expect(theme).toContain('#090e17'); // sky --sky-void
+  });
+
+  it('has exactly one copy of them, which is the point of the constant', () => {
+    for (const [name, source] of [
+      ['layout.tsx', layout],
+      ['manifest.ts', manifest],
+    ] as const) {
+      expect(source, `${name} re-inlined a literal instead of using THEME_COLORS`).not.toMatch(
+        /#[0-9a-fA-F]{6}/,
+      );
+      expect(source).toContain('THEME_COLORS');
+    }
   });
 });

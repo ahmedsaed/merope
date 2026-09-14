@@ -2,12 +2,14 @@ import type { Metadata } from 'next';
 import { Page } from '@/design/components/Page';
 import { Annotation, Field, SectionHead } from '@/design/components/primitives';
 import { MAGNITUDE_CLASSES, NEBULA, PLATE, STAR, SUPERCOMPUTER } from '@/lib/merope';
+import { pageMetadata } from '@/lib/seo';
 import { SITE, STATEMENT } from '@/lib/site';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Studio',
   description: 'What Merope is, who runs it, and why it is named after a star that lights dust.',
-};
+  path: '/studio',
+});
 
 /**
  * The studio page, and the home for the astronomy.

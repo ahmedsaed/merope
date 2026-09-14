@@ -8,6 +8,7 @@ import { getNote, getNotes, getProject } from '@/lib/content/collections';
 import { extractHeadings } from '@/lib/content/headings';
 import { Markdown } from '@/lib/content/mdx';
 import { formatDate } from '@/lib/format';
+import { pageMetadata } from '@/lib/seo';
 
 /**
  * A note.
@@ -31,17 +32,14 @@ export function generateStaticParams(): Params[] {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const note = getNote((await params).slug);
   if (!note) return {};
-  return {
+  return pageMetadata({
     title: note.title,
     description: note.description,
-    openGraph: {
-      type: 'article',
-      title: note.title,
-      description: note.description,
-      publishedTime: note.date.toISOString(),
-      modifiedTime: note.updated?.toISOString(),
-    },
-  };
+    path: `/notes/${note.slug}`,
+    type: 'article',
+    published: note.date,
+    modified: note.updated,
+  });
 }
 
 export default async function NotePage({ params }: { params: Promise<Params> }) {
