@@ -194,6 +194,25 @@ kept as the illustration.
 The catalogue designation (`23 Tau · M45`) set under the name is a **lockup, not
 an alternative** — it pairs with the mark in a header and is useless as an icon.
 
+### The margin is real furniture now
+
+A reading column stops at about 70 characters, so on anything wider than a
+laptop there is space beside it that cannot be filled with more text. Two
+answers were tried: narrowing the whole page until the masthead met the column,
+and leaving the column adrift in a wider frame. The first made the page change
+shape as you navigated, which is worse than the gap it closed.
+
+So the space is a **margin**, and it carries what the prose would otherwise have
+to stop and say: when a note was written, what it belongs to, what is in it; a
+project's magnitude, kind and first light. That is the monospace marginalia this
+document has called for since the direction was chosen, doing a job rather than
+decorating one.
+
+Two rules keep it honest. Nothing in the margin is load-bearing — a phone stacks
+it and loses nothing. And the contents list is set in the serif, not the mono:
+the label is data, but a heading is a sentence, and a sentence in wide-tracked
+mono is work to read.
+
 ## The easter eggs
 
 The rule: **the lore is in the details and the vocabulary, never in the way.**
@@ -212,7 +231,6 @@ Planned, cheap, high delight:
 - **404**: _"No object at these coordinates."_
 - `Cmd+K` palette named **finder scope** — the small telescope used to aim the
   big one.
-- RSS described as an **ephemeris**.
 - Changelog entries dated in ISO _and_ Julian date.
 - **"An Interstellar Interloper"** — the actual title of the Herbig & Simon paper
   on IC 349. Too good not to use somewhere.

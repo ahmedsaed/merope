@@ -18,6 +18,33 @@
   margin-top: 1.15em;
 }
 
+/*
+ * A release body: the same typography, at the scale of an entry in a list
+ * rather than a page of its own.
+ *
+ * The only changes are the ones that stop a short `### Added` block behaving
+ * like an essay — a heading that opens the block needs no rule above it and no
+ * two-line gap before it, because the headline it sits under is already the
+ * separation.
+ */
+.prose-tight {
+  font-size: 1rem;
+}
+
+.prose-tight h2,
+.prose-tight h3,
+.prose-tight h4 {
+  font-size: 1rem;
+  margin-top: 1.6em;
+  padding-top: 0;
+  border-top: 0;
+  color: var(--ink-muted);
+}
+
+.prose-tight > :first-child {
+  margin-top: 0;
+}
+
 /* --- Headings ------------------------------------------------------------
  * Set in the same serif as the body at modest sizes, separated by space and
  * weight rather than scale. A 2.5rem h2 inside an essay is a magazine trick and

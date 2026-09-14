@@ -157,15 +157,41 @@ CSS gradient cannot be transitioned at all. See `AGENTS.md`.
 
 ## Phase 3 — Content engine
 
-- `/notes` index + note pages with real typography.
-- **Adds to the home page:** the recent-notes strip, above the footer.
-- **Adds to the nav:** `/notes`, `/changelog`, `/studio` — they resolve now.
-- `/changelog` — combined feed across projects, plus per-project views.
-- `/projects/[slug]` — project pages, with their releases inline.
-- MDX component library for writing.
-- RSS/Atom (the "ephemeris"), sitemap, `robots.txt`.
-- Build-time OG image generation per note and release.
-- Build-time image pipeline (static export has no runtime optimiser).
+**Routes are done.** Two items are deliberately deferred; see the end.
+
+- ✅ `/notes` index + note pages with real typography.
+- ✅ **Added to the home page:** the recent-notes strip, above the footer.
+- ✅ **Added to the nav:** `/notes`. `/changelog`, `/projects` and `/studio`
+  stay `live: false` until they resolve.
+- ✅ A shared `Page` shell — measure, gutters, header, footer — so three routes
+  cannot drift on the thing a visitor notices first. It deliberately does not
+  impose the `screenful` rhythm: that belongs to the landing page, and putting a
+  fold in the middle of someone's reading is the opposite of what this site is
+  for.
+- ✅ Frontmatter is typeset (`src/lib/typeset.ts`). Note bodies went through
+  smartypants and frontmatter did not, so a standfirst had typewriter
+  apostrophes directly above a body that did not.
+- ✅ `/changelog` — one combined list across every project. The per-project view
+  is the project page: the same `ReleaseList` with the name turned off.
+- ✅ `/projects` and `/projects/[slug]` — the catalogue row opened out, with the
+  project's releases inline. Catalogue names now link here rather than straight
+  out to a live site.
+- ✅ `/studio` — and the home for the astronomy. The landing page says almost
+  none of it on purpose; this is the one page where someone has actively asked.
+  It is also where the `23 Tau · M45 · B6IV(e)` line went after it was cut from
+  the hero.
+- ✅ Sitemap and `robots.txt`, generated from the content layer so a note that
+  exists is a note that is listed, and a draft cannot leak into either.
+- **Deferred, deliberately:**
+  - _An MDX component library._ There is one component (`Annotation`) and one
+    author. A library needs a second consumer to teach it the right API.
+  - _Per-note OG images._ The studio card is a screenshot of a real route, which
+    needs a browser; per-note means either one committed PNG per note or moving
+    to Satori, which cannot render the SVG star field the card is built from.
+    That is a design decision, not a chore — see HANDOFF.
+  - _A build-time image pipeline._ No note contains an image yet. Building the
+    pipeline first is exactly the speculative infrastructure this project keeps
+    refusing to write.
 
 ---
 
@@ -178,8 +204,12 @@ CSS gradient cannot be transitioned at all. See `AGENTS.md`.
   function as the only non-static piece of the system. **This is the one place
   the "fully static" rule may have to bend** — worth deciding deliberately
   rather than discovering late.
-- Buttondown can send from RSS, so notes could become the newsletter with no
-  separate writing step.
+- **Writing the newsletter is now a separate act.** Buttondown can compose an
+  issue from an RSS feed, and that was half the reason for choosing it — with
+  the feed dropped, a note does not become an issue on its own. Either the issue
+  is written by hand, or the build grows a private feed that exists only for
+  Buttondown to read. Decide before committing to a cadence, because "the notes
+  are the newsletter" is no longer free.
 - Analytics: privacy-preserving, no cookie banner. Vercel Analytics or Plausible.
 
 ---
@@ -219,7 +249,8 @@ up wrong.
 | Catalogue       | Index, not table          | A bordered table reads as a spreadsheet at three rows. Decided by looking.                       |
 | Coordinates     | SIMBAD, all nine rows     | One catalogue, one epoch. A table nobody can re-derive is one nobody checks.                     |
 | Nav             | Only live routes          | `live` per item. No dead links, no stub pages; the nav grows with the site.                      |
-| Newsletter      | Buttondown                | Markdown-native, can send from RSS.                                                              |
+| Newsletter      | Buttondown                | Markdown-native. Note: the send-from-RSS argument lapsed when the feed was dropped.              |
+| Feeds           | Dropped entirely          | No RSS or Atom. Asked for. Do not re-add one because a phase list once mentioned it.             |
 | Background      | Real sky, site-wide       | 650 Gaia stars, not a scatter. A particle field is the cliché this direction exists to avoid.    |
 | Star glyph      | One constant, both scales | Cluster and backdrop must agree, or the page has two star systems in it.                         |
 | Theme control   | Two chips + a tooltip     | `plate / sky` read as jargon to a first-time visitor. Still not a sun and a moon.                |

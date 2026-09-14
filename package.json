@@ -21,6 +21,7 @@
     "fetch:field": "tsx scripts/fetch-field.ts"
   },
   "dependencies": {
+    "github-slugger": "^2.0.0",
     "gray-matter": "^4.0.3",
     "next": "16.3.5",
     "next-mdx-remote": "^6.0.0",

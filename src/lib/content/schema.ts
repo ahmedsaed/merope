@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { typeset } from '../typeset';
 
 /**
  * Frontmatter contracts.
@@ -29,6 +30,16 @@ const isoDate = z.preprocess(
   z.date({ error: 'expected YYYY-MM-DD' }),
 );
 
+/**
+ * A line of prose in frontmatter — a title, a standfirst, a summary.
+ *
+ * Typeset on the way in rather than at each render, so no surface can forget:
+ * the index, the page, the catalogue and the meta description all read the same
+ * already-correct string. See `src/lib/typeset.ts` for why this is not just
+ * left to the MDX pipeline.
+ */
+const prose = (max: number) => z.string().min(1).max(max).transform(typeset);
+
 const magnitude = z
   .number()
   .int()
@@ -37,9 +48,9 @@ const magnitude = z
 
 /** A written note. Long-form, dated, occasionally about a project. */
 export const noteSchema = z.object({
-  title: z.string().min(1),
-  /** Used verbatim as the meta description and the index blurb. */
-  description: z.string().min(1).max(200),
+  title: prose(160),
+  /** Used verbatim as the meta description, the index blurb and the standfirst. */
+  description: prose(200),
   date: isoDate,
   updated: isoDate.optional(),
   tags: z.array(z.string()).default([]),
@@ -55,7 +66,7 @@ export const releaseSchema = z.object({
   version: z.string().min(1),
   date: isoDate,
   /** One line summarising the release, for the combined changelog feed. */
-  headline: z.string().min(1).max(160),
+  headline: prose(160),
   /** Flags a release that needs a human to do something before upgrading. */
   breaking: z.boolean().default(false),
   draft: z.boolean().default(false),
@@ -63,9 +74,9 @@ export const releaseSchema = z.object({
 
 /** A project in the studio's catalogue. */
 export const projectSchema = z.object({
-  name: z.string().min(1),
+  name: prose(80),
   /** Shown in the catalogue row. Must survive being read on its own. */
-  summary: z.string().min(1).max(200),
+  summary: prose(200),
   /** Status, expressed on the scale the whole site already uses. */
   magnitude,
   /** Plain-language category. The lore stays in the column header, not here. */
