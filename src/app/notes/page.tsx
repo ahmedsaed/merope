@@ -3,11 +3,13 @@ import { NoteList } from '@/design/components/NoteList';
 import { Page } from '@/design/components/Page';
 import { Annotation, SectionHead } from '@/design/components/primitives';
 import { getNotes } from '@/lib/content/collections';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Notes',
   description: 'Writing from the studio — on what gets built here, and how.',
-};
+  path: '/notes',
+});
 
 /**
  * The notes index.

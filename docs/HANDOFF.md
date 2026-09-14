@@ -158,12 +158,16 @@ this is worth a decision.
 honest option and read calmer; stars read more decorative and are more legible
 at small sizes. Both have been seen rendered; neither is wrong.
 
-### d. Phase 4 will bend the static rule
+### d. The newsletter, if it happens at all
 
-A static page cannot POST to Buttondown without exposing a key. Either their
-hosted embed, or one serverless function as the only non-static piece of the
-system. Explicitly deferred, but decide it deliberately rather than discovering
-it late.
+Dropping the feed took away most of what made it cheap — Buttondown was chosen
+partly because it could compose an issue from RSS, so notes became issues for
+free. Without that, every issue is hand-written, it still breaks the static rule
+(a static page cannot POST to Buttondown without exposing a key), and there is
+one published note to send. A subscribe box that collects addresses nobody
+emails is worse than no box. **Write for a while first; add it if a cadence
+appears.** Analytics is the half of that phase worth doing now, and is
+unaffected by any of this.
 
 ### e. The catalogue has one row
 
@@ -173,7 +177,30 @@ a call about the studio, not about the site.
 
 ---
 
-## 4. What Phase 3 is
+## 4. What is actually left
+
+**Phases 5 and 6 are gone.** Each project under `merope.dev` gets its own design,
+so a shared subdomain header solves nothing; and extracting `src/design/` into a
+package was always conditional on a second consumer who may never arrive. The
+discipline stays — nothing in `src/design/` may import from `src/app` — because
+that is what keeps the option open.
+
+What that leaves is small, and most of it is not code:
+
+- **Analytics.** Privacy-preserving, no cookie banner. Half an hour.
+- **A UI pass on what has never had one:** the catalogue rows, the header, the
+  footer, `/styleguide`, and the notes index. All first-draft.
+- **The remaining easter eggs:** `Cmd+K` as a finder scope, Julian dates on
+  changelog entries.
+- **The three Phase 3 deferrals**, all still waiting on a real reason: per-note
+  OG images (a design decision — Satori cannot draw the star field), an MDX
+  component library (one component, one author), an image pipeline (no images).
+- **Writing.** The site ships one note and one project. Everything else is seed
+  content that never reaches production.
+
+The building is essentially done. What the site needs now is things to say.
+
+## 5. What Phase 3 was
 
 `docs/ROADMAP.md` has the full list. The shape of it:
 

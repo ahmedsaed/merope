@@ -4,6 +4,22 @@ export type Theme = (typeof THEMES)[number];
 export const THEME_STORAGE_KEY = 'merope.theme';
 
 /**
+ * The two grounds as hex, for the places that cannot read CSS.
+ *
+ * `theme-color` in a `<meta>` tag and `background_color` in a web app manifest
+ * are read by browser chrome and by the OS, neither of which has a stylesheet.
+ * These mirror `--plate-stock` and `--sky-void` in tokens.css, which are the
+ * authoritative values and are written in oklch.
+ *
+ * **Change one, change both.** It is the same hazard as `icon.svg`, which
+ * carries a hand-copied hex for the same reason — a favicon renders outside the
+ * document too. Keeping them in one constant at least means there is a single
+ * place to look, instead of a literal buried in a viewport export and another
+ * in a manifest.
+ */
+export const THEME_COLORS = { plate: '#f6f3ed', sky: '#090e17' } as const;
+
+/**
  * What the control says when someone asks it.
  *
  * The toggle is two glyphs, so this is the only place the idea is spelled out —
@@ -25,6 +41,30 @@ export const THEME_LABELS: Record<Theme, { name: string; meaning: string }> = {
 
 /** The line that makes the pair make sense. Shown under either explanation. */
 export const THEME_PREMISE = 'Two ways of recording the same sky.';
+
+/**
+ * The console banner.
+ *
+ * `docs/BRAND.md` asks for the real coordinates on load, and this is the whole
+ * of it: one line for anyone who opens the console, styled so it reads as a
+ * plate caption rather than as log output.
+ *
+ * Deliberately a `log` and not a `warn`. The screenshot harness fails the build
+ * on any console error, and a site that shouts at its own verification tooling
+ * to make a joke has got the priorities backwards.
+ */
+export const CONSOLE_BANNER_SCRIPT = (line: string, thesis: string) =>
+  `
+(function () {
+  try {
+    console.log(
+      "%c" + ${JSON.stringify(line)} + "%c\\n" + ${JSON.stringify(thesis)},
+      "font-family:ui-monospace,monospace;letter-spacing:0.14em",
+      "font-style:italic;opacity:0.7"
+    );
+  } catch (e) {}
+})();
+`.trim();
 
 /**
  * Runs blocking, before first paint, to stop the wrong theme flashing.

@@ -51,8 +51,8 @@ src/design/components/  Mark, Wordmark, StarField, HeroField, SkyBackdrop,
 src/lib/        merope.ts (lore), sky.ts (projection), site.ts (config),
                 field.ts (GENERATED — pnpm fetch:field), content/ (loader)
 content/        notes/, changelog/, projects/ — markdown with validated frontmatter
-scripts/        shoot.ts (screenshots), render-og.ts, fetch-field.ts,
-                check-content.ts, static-server.ts
+scripts/        shoot.ts (screenshots), render-og.ts (OG card + app icon),
+                fetch-field.ts, check-content.ts, static-server.ts
 docs/           HANDOFF.md (start here), BRAND.md (direction),
                 LORE.md (verified facts + sources),
                 ROADMAP.md (phases and decisions)
@@ -68,12 +68,28 @@ screenshots of every route in both themes at both breakpoints to `.shots/`, and
 fails on any console error. A green build says nothing about whether a page is
 any good.
 
-**The OG card is generated, not hand-drawn.** It is a real route at
-`/styleguide/og` built from the same components as everything else;
-`pnpm build && pnpm render:og` screenshots it to `src/app/opengraph-image.png`,
-which is committed because the build cannot assume a browser. Re-run it whenever
-the mark, the palette, the thesis or the star field changes — the tests check
-the file is a valid 1200x630@2x PNG, but nothing can check that it is current.
+**Every image asset is generated, not hand-drawn.** `pnpm build && pnpm
+render:og` writes all three, and they are committed because the build cannot
+assume a browser:
+
+- `opengraph-image.png` — screenshot of `/styleguide/og`
+- `apple-icon.png` — screenshot of `/styleguide/icon`
+- `favicon.ico` — `icon.svg` rasterised to 16, 32 and 48 on a canvas
+
+Re-run it whenever the mark, the palette, the thesis or the star field changes.
+The tests check the files are valid, the right sizes, and that the favicon
+actually contains the mark's colours — but nothing can check that they are
+current.
+
+**`favicon.ico` was the framework's default for three phases.** A black disc
+with a white triangle, shipping as this site's own icon, while every check
+passed — because nothing looked inside the file. `tests/design.test.ts` now
+decodes the 16px entry and asserts it contains the accent blue and the
+grease-pencil red. It is also rasterised from `icon.svg` rather than
+screenshotted from a page: `omitBackground` does not remove a background the
+page itself paints, and between `body`, the grain overlay and `color-scheme`
+the icon kept coming out as an opaque warm tile — a light square on dark
+browser chrome.
 
 ## Traps already hit here
 
@@ -169,6 +185,29 @@ the file is a valid 1200x630@2x PNG, but nothing can check that it is current.
   though it had slid sideways. It was wrong at 1440 too; the wider screen just
   made it obvious. `Page` takes `width="reading"` for single-column pages, which
   centres the measure while leaving the masthead where it is.
+- **Next replaces `openGraph`, it does not merge it.** A page that declares
+  `openGraph` to add one field silently drops everything the layout set — which
+  is how notes lost `og:image` entirely and how every page came to claim
+  `og:url` was the home page. Both were invisible in the source and obvious in
+  the built HTML. Every route goes through `pageMetadata` in `src/lib/seo.ts`
+  and passes its own path; `tests/metadata.test.ts` asserts against `out/`.
+- **The theme init script must stay a raw inline `<script>`.** React logs a
+  dev-only warning about script tags inside components; it is true, irrelevant
+  for a script that must run once before first paint, and absent from a
+  production build. `next/script` with `strategy="beforeInteractive"` is the
+  documented way to silence it and is **wrong here**: under `output: 'export'`
+  it emits no executable tag, only a push into `self.__next_s` for the runtime
+  to drain after boot — so the theme lands after the page has painted. The whole
+  e2e suite stayed green through that change, because "applies the stored theme
+  before first paint" asserts after `goto` resolves, by which point hydration
+  has already run it. "Sets the theme with the framework JavaScript blocked"
+  is the test that actually holds the line; do not delete it.
+- **A `screenful` that sits under the header needs `--screen-offset`.** Without
+  it the page is exactly one header taller than the viewport and the snap marker
+  at the section's top edge pulls the masthead off-screen the moment the scroll
+  settles. The hero and the 404 both carry
+  `[--screen-offset:var(--header-block)]` for this reason; a section further
+  down the page does not.
 - **Seed draft content before trusting any scroll or layout behaviour.** With
   one catalogue row every section fits a screen and the bug above is invisible.
   `draft: true` builds in `pnpm dev` and is excluded from `pnpm build` and

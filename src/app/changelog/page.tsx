@@ -4,11 +4,13 @@ import { ReleaseList, type ReleaseEntry } from '@/design/components/ReleaseList'
 import { Annotation, SectionHead } from '@/design/components/primitives';
 import { getProject, getReleases } from '@/lib/content/collections';
 import { Markdown } from '@/lib/content/mdx';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Changelog',
   description: 'Every release across every project in the studio, newest first.',
-};
+  path: '/changelog',
+});
 
 /**
  * The combined changelog.

@@ -4,11 +4,13 @@ import { Page } from '@/design/components/Page';
 import { SectionHead } from '@/design/components/primitives';
 import { getProjects } from '@/lib/content/collections';
 import { type Magnitude } from '@/lib/merope';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Projects',
   description: 'The studio catalogue — everything Merope has put its name on, brightest first.',
-};
+  path: '/projects',
+});
 
 /**
  * The projects index.

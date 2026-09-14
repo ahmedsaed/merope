@@ -8,6 +8,7 @@ import { Annotation, MagnitudeDot } from '@/design/components/primitives';
 import { getProject, getProjects, getReleasesForProject } from '@/lib/content/collections';
 import { Markdown } from '@/lib/content/mdx';
 import { formatDate } from '@/lib/format';
+import { pageMetadata } from '@/lib/seo';
 import { MAGNITUDE_CLASSES, type Magnitude } from '@/lib/merope';
 
 /**
@@ -28,11 +29,11 @@ export function generateStaticParams(): Params[] {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const project = getProject((await params).slug);
   if (!project) return {};
-  return {
+  return pageMetadata({
     title: project.name,
     description: project.summary,
-    openGraph: { type: 'website', title: project.name, description: project.summary },
-  };
+    path: `/projects/${project.slug}`,
+  });
 }
 
 export default async function ProjectPage({ params }: { params: Promise<Params> }) {
