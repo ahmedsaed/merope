@@ -9,6 +9,7 @@ import {
   getReleases,
 } from '@/lib/content/collections';
 import { noteSchema, projectSchema } from '@/lib/content/schema';
+import { typeset } from '@/lib/typeset';
 
 describe('frontmatter schemas', () => {
   it('rejects a date that is not YYYY-MM-DD', () => {
@@ -122,5 +123,46 @@ describe('build-time failure modes', () => {
   it('returns an empty collection rather than throwing when a directory is absent', () => {
     fixture({ 'notes/ok.md': '---\ntitle: x\ndescription: x\ndate: 2026-01-01\n---\n' });
     expect(getProjects()).toEqual([]);
+  });
+});
+
+describe('frontmatter is typeset', () => {
+  /**
+   * Note bodies go through remark-smartypants; frontmatter does not. That left
+   * a page whose body had real apostrophes and whose standfirst, one line
+   * above it, had typewriter ones. Guarded here because the failure is
+   * invisible unless you look closely at the right sentence.
+   */
+  it('turns apostrophes in a description into real ones', () => {
+    expect(typeset("this site's light theme")).toBe('this site’s light theme');
+  });
+
+  it('opens a quote only where a quote can open', () => {
+    expect(typeset(`He said "look twice" and left`)).toBe('He said “look twice” and left');
+    expect(typeset("'Lost Pleiad' is a title")).toBe('‘Lost Pleiad’ is a title');
+  });
+
+  it('leaves a possessive at the end of a word alone as an apostrophe', () => {
+    expect(typeset("the Pleiades' own parts")).toBe('the Pleiades’ own parts');
+  });
+
+  it('handles dashes and ellipses without touching a hyphenated word', () => {
+    expect(typeset('spare parts -- real work')).toBe('spare parts – real work');
+    expect(typeset('one --- two')).toBe('one — two');
+    expect(typeset('and so on...')).toBe('and so on…');
+    expect(typeset('blue-white subgiant')).toBe('blue-white subgiant');
+  });
+
+  it('leaves text that needs nothing untouched', () => {
+    const clean = 'The star is not the point. What it lights up is.';
+    expect(typeset(clean)).toBe(clean);
+  });
+
+  it('applies to real content, not just to unit inputs', () => {
+    // Every loaded note must already be typeset — no surface should have to.
+    for (const note of getNotes()) {
+      expect(note.title, `${note.slug} title`).not.toMatch(/['"]/);
+      expect(note.description, `${note.slug} description`).not.toMatch(/['"]/);
+    }
   });
 });

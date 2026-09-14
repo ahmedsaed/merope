@@ -177,13 +177,14 @@ a call about the studio, not about the site.
 
 `docs/ROADMAP.md` has the full list. The shape of it:
 
-- `/notes` index and note pages. `/notes/[slug]` already exists and renders.
+- ~~`/notes` index and note pages~~ — done, along with the home-page strip, the
+  `Page` shell and frontmatter typesetting.
 - `/changelog`, `/projects/[slug]`, `/studio`.
 - **Then flip `live: true`** on those entries in `NAV` (`src/lib/site.ts`). The
   header renders `liveNav()`, so an item appears the moment its route does.
   This is the last step of building a route, not a separate task.
 - The recent-notes strip on the home page, above the footer.
-- RSS/Atom (the "ephemeris"), sitemap, `robots.txt`.
+- Sitemap and `robots.txt`. **No feeds** — RSS/Atom was dropped deliberately.
 - Per-note OG images, and a build-time image pipeline — static export has no
   runtime optimiser.
 

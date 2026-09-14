@@ -17,8 +17,9 @@ const prettyCodeOptions: PrettyCodeOptions = {
   /**
    * Two themes, emitted together as `--shiki-light` / `--shiki-dark` custom
    * properties on each token, so a code block re-themes with the rest of the
-   * page and never needs a second render. Phase 3 wires those variables to the
-   * plate/sky attribute; until then they follow the OS.
+   * page and never needs a second render. `prose.css` binds those variables to
+   * the plate/sky attribute, with the OS preference as the fallback when no
+   * choice has been made — the same three-step cascade the colour tokens use.
    */
   theme: { light: 'github-light-default', dark: 'github-dark-default' },
   keepBackground: false,

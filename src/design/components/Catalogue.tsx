@@ -1,3 +1,4 @@
+import { formatDate } from '@/lib/format';
 import type { Magnitude } from '@/lib/merope';
 import { Annotation, MagnitudeDot } from './primitives';
 
@@ -33,9 +34,6 @@ export type CatalogueEntry = {
   repo?: string;
 };
 
-/** ISO, in UTC, so a build machine's timezone cannot shift a launch by a day. */
-const iso = (date: Date) => date.toISOString().slice(0, 10);
-
 export function Catalogue({ entries }: { entries: readonly CatalogueEntry[] }) {
   if (entries.length === 0) return null;
 
@@ -64,7 +62,7 @@ export function Catalogue({ entries }: { entries: readonly CatalogueEntry[] }) {
               className="tabular-nums"
               style={{ opacity: `var(--mag-${entry.magnitude})` }}
             >
-              m{entry.magnitude} · {entry.kind} · first light {iso(entry.firstLight)}
+              m{entry.magnitude} · {entry.kind} · first light {formatDate(entry.firstLight)}
             </Annotation>
           </div>
 

@@ -143,6 +143,11 @@ the file is a valid 1200x630@2x PNG, but nothing can check that it is current.
   into the middle of the section it is meant to mark, and it carries
   `scroll-margin-top: var(--screen-offset)` so the first screen settles at the
   top of the document instead of scrolling the header off it.
+- **Frontmatter does not go through the MDX pipeline.** Note bodies get
+  `remark-smartypants`; a title, standfirst or catalogue summary does not, so
+  they shipped typewriter apostrophes directly above prose that had real ones.
+  `content/schema.ts` typesets them on the way in — add new prose fields with
+  the `prose()` helper, not a bare `z.string()`.
 - **Seed draft content before trusting any scroll or layout behaviour.** With
   one catalogue row every section fits a screen and the bug above is invisible.
   `draft: true` builds in `pnpm dev` and is excluded from `pnpm build` and

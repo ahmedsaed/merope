@@ -212,7 +212,6 @@ Planned, cheap, high delight:
 - **404**: _"No object at these coordinates."_
 - `Cmd+K` palette named **finder scope** — the small telescope used to aim the
   big one.
-- RSS described as an **ephemeris**.
 - Changelog entries dated in ISO _and_ Julian date.
 - **"An Interstellar Interloper"** — the actual title of the Herbig & Simon paper
   on IC 349. Too good not to use somewhere.
