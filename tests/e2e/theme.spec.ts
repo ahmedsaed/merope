@@ -64,6 +64,31 @@ test.describe('theme', () => {
     expect(attributeAtFirstPaint).toBe('sky');
   });
 
+  test('sets the theme with the framework JavaScript blocked', async ({ page }) => {
+    /**
+     * The real no-flash guarantee, and the only test here that can catch a
+     * regression in it.
+     *
+     * "Applies the stored theme before first paint" above passes even when the
+     * init script has been deferred, because by the time `goto` resolves the
+     * framework has hydrated and run it — late, but before the assertion. So
+     * this blocks every Next chunk. With no framework JavaScript at all, the
+     * attribute can only be set by a synchronous inline script in the head,
+     * which is exactly the thing that must not regress.
+     *
+     * It was written after `next/script` with `strategy="beforeInteractive"`
+     * silently turned the init script into a queued entry in `self.__next_s`
+     * and the whole suite still went green.
+     */
+    await page.addInitScript(() => localStorage.setItem('merope.theme', 'sky'));
+    await page.route('**/_next/static/**', (route) => route.abort());
+
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.goto('/');
+
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'sky');
+  });
+
   test('carries the choice across navigations', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'sky' }).click();

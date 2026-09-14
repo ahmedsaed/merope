@@ -169,6 +169,17 @@ the file is a valid 1200x630@2x PNG, but nothing can check that it is current.
   though it had slid sideways. It was wrong at 1440 too; the wider screen just
   made it obvious. `Page` takes `width="reading"` for single-column pages, which
   centres the measure while leaving the masthead where it is.
+- **The theme init script must stay a raw inline `<script>`.** React logs a
+  dev-only warning about script tags inside components; it is true, irrelevant
+  for a script that must run once before first paint, and absent from a
+  production build. `next/script` with `strategy="beforeInteractive"` is the
+  documented way to silence it and is **wrong here**: under `output: 'export'`
+  it emits no executable tag, only a push into `self.__next_s` for the runtime
+  to drain after boot — so the theme lands after the page has painted. The whole
+  e2e suite stayed green through that change, because "applies the stored theme
+  before first paint" asserts after `goto` resolves, by which point hydration
+  has already run it. "Sets the theme with the framework JavaScript blocked"
+  is the test that actually holds the line; do not delete it.
 - **A `screenful` that sits under the header needs `--screen-offset`.** Without
   it the page is exactly one header taller than the viewport and the snap marker
   at the section's top edge pulls the masthead off-screen the moment the scroll

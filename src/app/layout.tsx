@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import { SkyBackdrop } from '@/design/components/SkyBackdrop';
 import { fontVariables } from '@/design/fonts';
 import { CONSOLE_BANNER_SCRIPT, THEME_INIT_SCRIPT } from '@/design/theme';
@@ -32,12 +33,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang={SITE.locale} className={fontVariables} suppressHydrationWarning>
       <head>
-        {/* Blocking on purpose: a theme flash is worse than a millisecond. */}
+        {/*
+          A raw, synchronous, inline script, and it has to stay one.
+
+          React logs a dev-only warning about script tags inside components —
+          "scripts inside React components are never executed when rendering on
+          the client" — which is true and, for this script, irrelevant: it must
+          run once, before the first paint, and never again. The warning does
+          not appear in a production build.
+
+          `next/script` with `strategy="beforeInteractive"` is the documented
+          way to silence it and it is wrong here. Under `output: 'export'` it
+          does not emit an executable tag at all; it pushes the source into
+          `self.__next_s` for the framework runtime to drain after boot, so the
+          theme lands after the page has already painted in the other one. The
+          entire e2e suite stayed green through that change, which is why
+          "sets the theme with the framework JavaScript blocked" now exists.
+        */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-        {/* Not blocking, and after the theme: nothing about the page depends on
-            it, so it must never be in the way of first paint. */}
-        <script
-          async
+        {/* Nothing depends on this, so it must never be in the way of paint. */}
+        <Script
+          id="merope-banner"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: CONSOLE_BANNER_SCRIPT(COORDINATE_LINE, NEBULA.thesis),
           }}
