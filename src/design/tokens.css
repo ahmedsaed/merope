@@ -15,6 +15,27 @@
  */
 
 /* ---------------------------------------------------------------------------
+ * 0. The two palettes, named once.
+ *
+ * The theme blocks below resolve --ground and --ink from these, and so does the
+ * plate/sky control, whose two glyphs are literal chips of the themes they
+ * select. That control's colours must NOT flip with the active theme — the
+ * plate chip has to look like a plate while you are looking at the sky, or it is
+ * describing the wrong thing — so it cannot read --ground. Naming the values
+ * here is what stops the chips and the themes drifting apart.
+ * ------------------------------------------------------------------------ */
+
+:root {
+  /* plate: aged paper stock, carbon ink. Print is never pure black. */
+  --plate-stock: oklch(0.965 0.008 85);
+  --plate-carbon: oklch(0.225 0.015 62);
+
+  /* sky: the void, and starlight with a blue-white cast. */
+  --sky-void: oklch(0.163 0.021 264);
+  --sky-starlight: oklch(0.935 0.01 250);
+}
+
+/* ---------------------------------------------------------------------------
  * 1. Semantic surface — resolved per theme below.
  * ------------------------------------------------------------------------ */
 
@@ -23,12 +44,12 @@
   color-scheme: light;
 
   /* Surfaces, back to front */
-  --ground: oklch(0.965 0.008 85); /* aged paper stock */
+  --ground: var(--plate-stock);
   --surface: oklch(0.943 0.011 84); /* a card laid on the paper */
   --raised: oklch(0.917 0.014 82); /* a well, or an inset plate */
 
   /* Ink — carbon black, never pure black: print never is */
-  --ink: oklch(0.225 0.015 62);
+  --ink: var(--plate-carbon);
   --ink-muted: oklch(0.475 0.014 64);
   --ink-faint: oklch(0.655 0.012 68);
 
@@ -60,17 +81,17 @@
 
   /* Selection */
   --selection-bg: oklch(0.905 0.035 235);
-  --selection-fg: oklch(0.225 0.015 62);
+  --selection-fg: var(--plate-carbon);
 }
 
 [data-theme='sky'] {
   color-scheme: dark;
 
-  --ground: oklch(0.163 0.021 264);
+  --ground: var(--sky-void);
   --surface: oklch(0.199 0.025 263);
   --raised: oklch(0.238 0.028 262);
 
-  --ink: oklch(0.935 0.01 250);
+  --ink: var(--sky-starlight);
   --ink-muted: oklch(0.7 0.016 252);
   --ink-faint: oklch(0.52 0.02 255);
 
@@ -95,7 +116,7 @@
   --grain-blend: screen;
 
   --selection-bg: oklch(0.33 0.055 240);
-  --selection-fg: oklch(0.935 0.01 250);
+  --selection-fg: var(--sky-starlight);
 }
 
 /* Respect the OS only until the visitor states a preference (which sets
@@ -104,11 +125,11 @@
   :root:not([data-theme='plate']) {
     color-scheme: dark;
 
-    --ground: oklch(0.163 0.021 264);
+    --ground: var(--sky-void);
     --surface: oklch(0.199 0.025 263);
     --raised: oklch(0.238 0.028 262);
 
-    --ink: oklch(0.935 0.01 250);
+    --ink: var(--sky-starlight);
     --ink-muted: oklch(0.7 0.016 252);
     --ink-faint: oklch(0.52 0.02 255);
 
@@ -129,7 +150,7 @@
     --grain-blend: screen;
 
     --selection-bg: oklch(0.33 0.055 240);
-    --selection-fg: oklch(0.935 0.01 250);
+    --selection-fg: var(--sky-starlight);
   }
 }
 
@@ -180,9 +201,38 @@
   --size-heading: clamp(1.5rem, 1.2rem + 1.2vw, 2.125rem);
   --size-subhead: clamp(1.175rem, 1.05rem + 0.5vw, 1.4rem);
 
-  /* Optical measure: prose wants ~66 characters, catalog data wants room. */
-  --measure-prose: 34rem;
-  --measure-wide: 72rem;
+  /* Optical measure.
+   *
+   * These two are set against each other, not chosen independently. A reading
+   * column is capped by legibility — past about 75 characters the eye loses the
+   * start of the next line — so the only way to stop prose reading as half a
+   * page is to make the page narrower. At 34rem inside 72rem the text stopped
+   * dead at 49% of a hairline rule that ran the full width, which reads as an
+   * unfinished layout rather than a considered margin.
+   *
+   * 38rem is ~72 characters in Newsreader, still inside the comfortable range,
+   * and 64rem leaves the catalogue enough room to keep its data in the margin.
+   */
+  --measure-prose: 38rem;
+  --measure-wide: 64rem;
+
+  /* The first screen.
+   *
+   * The hero fills the viewport below the header, so the page opens on the sky
+   * and the catalogue is a thing you go and find rather than a thing crowding
+   * the name.
+   *
+   * `dvh` and not `vh`: on a phone `vh` is the height with the browser chrome
+   * retracted, so a 100vh hero is taller than the screen until you scroll and
+   * the fold lands in the wrong place. `dvh` tracks the chrome as it moves.
+   *
+   * This is the header row plus the page's top padding, measured rather than
+   * derived — the hero has to live inside <main> with the sections below it,
+   * and a flex column that fills the viewport cannot also contain them. If the
+   * header ever grows (the nav gains items in Phase 3), the hero simply starts
+   * a little below the fold, which is why it is a min-height and not a height.
+   */
+  --header-block: 4.75rem;
 
   /* Annotation letterspacing — plate margins were lettered wide and small. */
   --track-annotation: 0.16em;

@@ -76,7 +76,7 @@ export function HeroField({ size = 400 }: { size?: number }) {
           a clearing and never a shape. */}
       <div
         aria-hidden
-        className="exposure pointer-events-none absolute inset-0 -z-10 scale-125"
+        className="exposure pointer-events-none absolute inset-0 -z-10 scale-y-125"
         style={{
           // Flat colour, shaped by a mask. The obvious way to write this is a
           // radial-gradient of `--ground` — but `background-image` cannot be
@@ -92,7 +92,15 @@ export function HeroField({ size = 400 }: { size?: number }) {
             'radial-gradient(ellipse 62% 70% at 50% 50%, #000 0%, #000 48%, transparent 100%)',
         }}
       />
-      <StarField size={size} crop nebula />
+      {/* `size` is the width it wants; the cap is what a short window allows.
+          On a 620px-tall laptop the field alone is two thirds of the first
+          screen, and with the statement under it the hero stopped fitting the
+          viewport it is supposed to fill. `dvh` for the same reason the hero
+          uses it — the unit has to track a phone's retracting chrome. 46dvh is
+          the largest value that still leaves room for the statement on a 620px
+          laptop, and it is above the field's natural height on anything taller,
+          so a normal desktop is not paying for the short one. */}
+      <StarField size={size} crop nebula className="max-h-[46dvh]" />
     </div>
   );
 }

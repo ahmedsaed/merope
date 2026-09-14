@@ -68,6 +68,28 @@ describe('design tokens survive the build', () => {
     expect(occurrences.length).toBeGreaterThanOrEqual(3);
   });
 
+  /**
+   * The plate/sky control reads these directly through `var()` in an inline
+   * style, and nothing else in the bundle references them — which is precisely
+   * the shape of the bug this file exists for. If they vanish, the two chips
+   * lose their fills and the control silently stops describing anything.
+   */
+  it.each(['--plate-stock', '--plate-carbon', '--sky-void', '--sky-starlight'])(
+    'emits %s, which only an inline style reads',
+    (token) => {
+      expect(css).toMatch(new RegExp(`${token}\\s*:`));
+    },
+  );
+
+  it('resolves both themes from those named palettes rather than copies', () => {
+    // --ground and --ink must be var() references, or the chips and the themes
+    // can drift apart while every test still passes.
+    expect(css).toMatch(/--ground:\s*var\(--plate-stock\)/);
+    expect(css).toMatch(/--ground:\s*var\(--sky-void\)/);
+    expect(css).toMatch(/--ink:\s*var\(--plate-carbon\)/);
+    expect(css).toMatch(/--ink:\s*var\(--sky-starlight\)/);
+  });
+
   it('ships a sky theme selector', () => {
     expect(css).toMatch(/\[data-theme=.?sky.?\]/);
   });

@@ -115,6 +115,38 @@ the file is a valid 1200x630@2x PNG, but nothing can check that it is current.
 - **`mag-${n}` cannot be written as a Tailwind class.** v4 scans source text and
   never sees an interpolated name. The magnitude ramp has to arrive as
   `var(--mag-N)` in an inline style — which is why `Annotation` takes a `style`.
+- **The plate/sky chips must not read `--ground` or `--ink`.** They are samples
+  of the two themes, so they cannot follow the active one — the plate chip has to
+  look like a plate while you are looking at the sky. They read `--plate-*` and
+  `--sky-*`, which `tokens.css` names once and the themes themselves resolve
+  from. `currentColor` is the obvious choice here and it is wrong: it made both
+  chips light in `sky` and collapsed the negative/positive pair into "outline
+  icon, filled icon".
+- **A tooltip triggered by `:focus-within` stays open after a mouse click,**
+  because the button keeps focus. Use `peer-focus-visible` — the keyboard user
+  only, who is the one who needs it.
+- **Decorative bleed must not widen the document.** The hero's clearing was
+  `scale-125` and pushed the page 17px past the viewport at 390px — a horizontal
+  scrollbar on every phone. It bleeds only vertically now. Check
+  `scrollWidth === clientWidth` at 390px after touching the hero, and check it
+  against the **static export**: `next dev` injects an overlay with its own
+  overflow and will mislead you in both directions.
+- **Never put `scroll-snap-align` on a section that can outgrow the screen.**
+  When a snap area is larger than the snapport, the scroller may only rest where
+  that area still covers the viewport — so every position past the section's
+  bottom edge is dragged back to it. With a catalogue 1.7 screens tall this made
+  the footer literally unreachable: the document refused to scroll past 1552 of 1812. **`proximity` does not save you.** The oversized-area rule applies
+  whatever the strictness, which is the opposite of what the keyword sounds like
+  it promises. `screenful` therefore snaps on a zero-height `::before` marker at
+  the section's top edge, which can never be larger than the snapport. The
+  marker is absolutely positioned so `justify-content: center` cannot drag it
+  into the middle of the section it is meant to mark, and it carries
+  `scroll-margin-top: var(--screen-offset)` so the first screen settles at the
+  top of the document instead of scrolling the header off it.
+- **Seed draft content before trusting any scroll or layout behaviour.** With
+  one catalogue row every section fits a screen and the bug above is invisible.
+  `draft: true` builds in `pnpm dev` and is excluded from `pnpm build` and
+  `check:content`, so seed files can never reach production.
 - **The nav renders `liveNav()`, not `NAV`.** Every item carries a `live` flag;
   flipping it is the last step of building a route. The site never ships a dead
   link or a stub page.

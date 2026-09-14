@@ -1,11 +1,11 @@
 # Handoff
 
-Written at the end of the second working session, for whoever picks this up
+Written at the end of the third working session, for whoever picks this up
 next — human or agent, in a different environment.
 
 **Phases 0, 1 and 2 are done. Nothing is blocked.** The landing page is
-complete and launchable, and the visual direction has had a real review pass.
-Phase 3 is next — but the immediate intent is to keep refining the UI.
+complete, launchable, and has been through two rounds of design review with a
+human at the browser. Phase 3 is next.
 
 ---
 
@@ -35,7 +35,36 @@ Read in this order:
 
 ---
 
-## 2. What changed this session
+## 2. What changed in session three
+
+The page got its rhythm, and the theme control got understandable.
+
+- **The theme control is two chips and a tooltip.** `plate / sky` read as
+  jargon to a first-time visitor. The chips are samples of the two themes — the
+  same three stars as a negative and a positive — which is the idea drawn rather
+  than described. Still not a sun and a moon; `docs/BRAND.md` records why.
+- **The hero owns the first screen.** Name and cluster share a line, the studio
+  statement sits centred beneath both as a subtitle, and the whole thing is
+  sized with `min-height: calc(100dvh - var(--header-block))`. The astronomy
+  line that used to sit under the name (`23 Tau · M45 · B6IV(e)`) is gone, not
+  moved — the footer already carried the fuller coordinate line.
+- **Text was taking half the page.** A reading measure is capped by legibility,
+  so widening the column alone could not fix it; the page had to come in too.
+  Prose 34→38rem, page 72→64rem. What made it read as unfinished rather than as
+  a considered margin was full-width hairline rules under half-width text.
+- **Every section owns a screen** — the `screenful` utility — and the scroll
+  anchors at each one. See the trap in §6; this is where the session's real bug
+  was.
+- **The background twinkles, in `sky` only.** Scintillation is the atmosphere,
+  not the star, so a plate cannot record it: minutes of exposure average the
+  shimmer flat. 188 of 650 stars, eight phases, deterministic.
+- **Six seed projects** in `content/projects/_seed-*.md`, `draft: true`. They
+  build in `pnpm dev` and are excluded from `pnpm build` and `check:content`.
+  Keep them. They are the reason the scroll bug in §6 was found at all.
+
+---
+
+## 2b. What changed in session two
 
 ### The star data blocker is closed
 
@@ -109,9 +138,10 @@ snaps through the theme cross-fade.
 
 ### a. The next UI refinement pass
 
-This is the live one. The hero has been through a review; the rest has not. The
-catalogue, the statement, the footer and the styleguide are all still at their
-first draft, and the vertical rhythm between blocks was set by eye in one sitting.
+The hero, the theme control and the page rhythm have been reviewed with a human
+at the browser. Confirmed as fine for now, and explicitly deferred: the
+**catalogue rows**, the **header** and the **footer**. `/styleguide` and
+`/notes/[slug]` have never had a design pass at all.
 
 ### b. How far the plate furniture goes
 
@@ -218,6 +248,22 @@ and is wrong.
   theme for the whole fade. It is now a flat `background-color` behind a static
   `mask-image`. The same class of bug hits every SVG `fill`, `stroke` and
   `stop-color` — hence the `exposure` utility in `globals.css`.
+- **A section taller than the screen must not be a scroll-snap target.** When a
+  snap area is larger than the viewport the scroller may only rest where that
+  area still covers it, so everything past the section's bottom edge is dragged
+  back. A 1.7-screen catalogue made the footer unreachable — the document would
+  not scroll past 1552 of 1812. **`proximity` does not help;** the rule applies
+  whatever the strictness. `screenful` snaps on a zero-height `::before` marker
+  instead. With one catalogue row this is completely invisible, which is why the
+  seed content matters.
+- **A CSS gradient cannot be transitioned,** so the clearing under the hero
+  snapped to the new theme while the page cross-faded for 900ms. It is a flat
+  `background-color` behind a static `mask-image` now, and anything else that
+  paints a token outside `body` carries the `exposure` utility.
+- **A tooltip on `:focus-within` stays open after a mouse click.** Use
+  `peer-focus-visible`.
+- **The plate/sky chips must not read `--ground` or `--ink`.** They are samples
+  of the two themes and cannot follow the active one.
 - **The Playwright MCP browser writes `.playwright-mcp/` into the repo,** and
   prettier reads its `.yml` snapshots and fails `format:check`, which fails CI
   for no reason at all. Already in `.prettierignore` and `.gitignore`; do not

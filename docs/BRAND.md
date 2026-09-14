@@ -107,10 +107,31 @@ layout, but the annotations glow and the reflection nebula blooms behind the
 wordmark.
 
 These are not light and dark modes. They are **two ways of recording the same
-sky**, and the control says so: it is labelled `plate / sky`, not a sun and a
-moon. The joke underneath is that early astrophotography worked on **negatives**,
-so the light theme is, correctly, the negative. Switching themes switches between
-the plate and what it recorded.
+sky**, and the control says so. The joke underneath is that early
+astrophotography worked on **negatives**, so the light theme is, correctly, the
+negative. Switching themes switches between the plate and what it recorded.
+
+**How the control says it.** It was originally two words, `plate / sky` — never
+a sun and a moon, and that part still holds. But the words turned out to be
+jargon: a first-time visitor has no way to guess which is which, or that the
+pairing means anything at all. So it is now two chips, each a sample of the
+theme it selects — the same three stars, once dark on pale stock and once pale
+on the void. That is the idea drawn rather than described, and it is the one
+place on the site where the negative is visible next to the positive.
+
+Two rules fell out of building it, and both are load-bearing:
+
+- **The chips do not follow the active theme.** The plate chip has to look like
+  a plate while you are looking at the sky, or the control is describing the
+  wrong thing. They read the two palettes named once in `tokens.css` rather than
+  `--ground` and `--ink`.
+- **Selection is the well behind the chip, never the chip.** It cannot be an
+  inversion (that repaints the chip) and it cannot be opacity (that turns the
+  pale stock grey, which is exactly what it must not look like).
+
+Hovering or focusing either chip explains the premise in a sentence. The
+explanation is a bonus, never the affordance: both buttons carry a real
+accessible name, because there is no hover on a phone.
 
 ### Why this survives scrutiny
 

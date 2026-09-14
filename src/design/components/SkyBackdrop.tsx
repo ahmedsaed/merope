@@ -61,6 +61,16 @@ const BANDS = [
 
 const bandFor = (mag: number) => BANDS.findIndex((b) => mag <= b.upTo);
 
+/**
+ * How many of the brightest bands scintillate. See the `scintillate` block in
+ * globals.css for why it is not all of them — and for why the plate, being a
+ * long exposure, does not twinkle at all.
+ */
+const TWINKLING_BANDS = 3;
+
+/** Phase count in globals.css. Stepping by a coprime spreads adjacent stars. */
+const PHASES = 8;
+
 export function SkyBackdrop() {
   const stars = projectField(FIELD);
   const banded = BANDS.map((_, i) => stars.filter((s) => bandFor(s.mag) === i));
@@ -104,6 +114,11 @@ export function SkyBackdrop() {
               {group.map(({ x, y }, j) => (
                 <use
                   key={j}
+                  // Deterministic, never random: this is a static export, and
+                  // the same input has to produce the same file every build.
+                  className={
+                    i < TWINKLING_BANDS ? `scintillate scint-${(j * 3 + i) % PHASES}` : undefined
+                  }
                   href={`#sky-m${i}`}
                   x={(x * 100).toFixed(2)}
                   y={(y * 100).toFixed(2)}
