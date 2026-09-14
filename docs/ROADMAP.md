@@ -1,7 +1,8 @@
 # Roadmap
 
-Phases are sized so each one ends with something reviewable. Phases 0, 1 and 2
-are done; everything after them is a proposal and should be argued with.
+Phases are sized so each one ends with something reviewable. Phases 0 to 3 are
+done. Phase 5 is dropped and Phase 6 is indefinite — see below — so what remains
+is polish, measurement, and writing.
 
 For current state and what is open, see [`HANDOFF.md`](HANDOFF.md).
 
@@ -195,42 +196,67 @@ CSS gradient cannot be transitioned at all. See `AGENTS.md`.
 
 ---
 
-## Phase 4 — Newsletter & measurement
+## Phase 4 — Measurement, and a newsletter that may not happen
 
-**Adds to the home page:** the newsletter block, below the notes strip.
+Dropping the feed did not kill this phase; it split it in half, and the halves
+now have very different prospects.
 
-- Buttondown integration. A static site cannot POST to it directly without
-  exposing a key, so: either Buttondown's hosted embed, or a tiny serverless
-  function as the only non-static piece of the system. **This is the one place
-  the "fully static" rule may have to bend** — worth deciding deliberately
-  rather than discovering late.
-- **Writing the newsletter is now a separate act.** Buttondown can compose an
-  issue from an RSS feed, and that was half the reason for choosing it — with
-  the feed dropped, a note does not become an issue on its own. Either the issue
-  is written by hand, or the build grows a private feed that exists only for
-  Buttondown to read. Decide before committing to a cadence, because "the notes
-  are the newsletter" is no longer free.
-- Analytics: privacy-preserving, no cookie banner. Vercel Analytics or Plausible.
+### Analytics — still worth doing
+
+Entirely independent of the feed. Privacy-preserving, no cookie banner, Vercel
+Analytics or Plausible. Small, and the only way to know whether any of this is
+read.
+
+### The newsletter — reconsider before building
+
+**The feed was most of what made it cheap.** Buttondown was chosen partly
+because it can compose an issue from RSS, so notes would have become issues with
+no separate writing step. Without that, every issue is written by hand.
+
+What is left is a feature that:
+
+- **breaks the one architectural non-negotiable** — a static page cannot POST to
+  Buttondown without exposing a key, so it needs either a hosted embed or a
+  serverless function;
+- **costs writing work per issue**, now that nothing composes itself;
+- **has nothing to send yet**, on a site with one published note.
+
+A subscribe box that collects addresses nobody emails is worse than no box: it
+takes something from a reader and does not honour it. The honest order is to
+write for a while first, and add the box if a cadence appears — at which point
+the effort is justified and the decision about the static rule is being made for
+a real reason rather than a hypothetical one.
 
 ---
 
-## Phase 5 — The subdomain system
+## Phase 5 — The subdomain system ❌ Dropped
 
-Making `merope.dev` feel like the parent of everything under it.
+**Decided against.** Each project living under `merope.dev` will have its own
+design and its own styles, so a shared header and footer for the subdomains to
+adopt would be solving a problem nobody has. The parent does not need to look
+like its children to be their parent.
 
-- A shared header/footer that project sites can adopt.
-- Conventions for what a project subdomain owns versus what the studio owns.
-- Cross-site sitemap and consistent OG treatment.
-- DNS notes, kept in the repo.
+Two fragments of it were worth keeping and have not been thrown away with the
+rest:
+
+- **DNS notes belong in the repo** regardless of how the subdomains look. That
+  is operational memory, not design.
+- **Does a project site link back here?** Worth answering once, when the first
+  subdomain exists. It is a link, not a system.
 
 ---
 
-## Phase 6 — Extract the design system
+## Phase 6 — Extract the design system ⏸ Indefinite
 
-Once two projects need it, lift `src/design/` into a versioned package and have
-the subdomains consume it. Not before — the second consumer is what teaches you
-the right API, and extracting on the strength of one is how design systems end
-up wrong.
+Lifting `src/design/` into a versioned package was always conditional on a
+second consumer — "the second consumer is what teaches you the right API, and
+extracting on the strength of one is how design systems end up wrong." With the
+subdomains going their own way, that consumer may never arrive, and this should
+happen only if the same theme is genuinely wanted somewhere else.
+
+Nothing is lost by waiting. `src/design/` is still kept self-contained and still
+must not import from `src/app`, because that discipline is what keeps the option
+open and is worth having on its own.
 
 ---
 
@@ -251,6 +277,8 @@ up wrong.
 | Nav             | Only live routes          | `live` per item. No dead links, no stub pages; the nav grows with the site.                      |
 | Newsletter      | Buttondown                | Markdown-native. Note: the send-from-RSS argument lapsed when the feed was dropped.              |
 | Feeds           | Dropped entirely          | No RSS or Atom. Asked for. Do not re-add one because a phase list once mentioned it.             |
+| Subdomains      | Own design, own styles    | Phase 5 dropped. A shared header for sites that will not look alike solves nothing.              |
+| Design package  | Only on a second consumer | Phase 6 indefinite. `src/design/` stays self-contained so the option survives.                   |
 | Background      | Real sky, site-wide       | 650 Gaia stars, not a scatter. A particle field is the cliché this direction exists to avoid.    |
 | Star glyph      | One constant, both scales | Cluster and backdrop must agree, or the page has two star systems in it.                         |
 | Theme control   | Two chips + a tooltip     | `plate / sky` read as jargon to a first-time visitor. Still not a sun and a moon.                |
