@@ -41,7 +41,7 @@ export default async function NotePage({ params }: { params: Promise<Params> }) 
         </time>
       </p>
       <h1 className="text-title mb-8 leading-tight font-light">{note.title}</h1>
-      <article className="space-y-5 leading-relaxed">
+      <article className="prose">
         <Markdown source={note.body} />
       </article>
     </main>

@@ -32,7 +32,7 @@ export const STAR = {
   /**
    * Merope is the FOURTH-BRIGHTEST of the seven sisters, and fifth-brightest
    * object in the cluster once Atlas is counted. She is emphatically not the
-   * faintest — Celaeno (5.44) and Asterope (5.64) are both dimmer, and popular
+   * faintest — Celaeno (5.46) and Asterope (5.76) are both dimmer, and popular
    * astronomy writing gets this wrong constantly. The "Lost Pleiad" title is
    * mythological, not photometric.
    */
@@ -117,6 +117,109 @@ export const SUPERCOMPUTER = {
   inService: { from: '2013-09-16', to: '2021-05-12' },
   thesis: 'Spare parts. Real work.',
 } as const;
+
+/**
+ * The cluster, as coordinates.
+ *
+ * All nine members, ICRS at epoch J2000, read from SIMBAD on 2026-09-13 and
+ * stored sexagesimally exactly as SIMBAD prints them (truncated to the
+ * milliarcsecond, which is already four orders of magnitude finer than a pixel
+ * here). One catalogue for every row, so a value can be checked against its
+ * source without undoing arithmetic or reconciling epochs. `src/lib/sky.ts`
+ * converts and projects.
+ *
+ * `sister` separates the seven sisters from their parents: Atlas and Pleione
+ * are in the cluster and in the asterism, but they are not Pleiades.
+ *
+ * Asterope is a naked-eye double — 21 Tau with 22 Tau about 150" away. One
+ * entry is right at this scale; two dots that close would merge. See
+ * docs/LORE.md for the citations.
+ */
+export const PLEIADES = [
+  {
+    name: 'Alcyone',
+    designation: '25 Tau',
+    ra: { h: 3, m: 47, s: 29.077 },
+    dec: { d: 24, m: 6, s: 18.488 },
+    magnitude: 2.87,
+    sister: true,
+  },
+  {
+    name: 'Atlas',
+    designation: '27 Tau',
+    ra: { h: 3, m: 49, s: 9.743 },
+    dec: { d: 24, m: 3, s: 12.302 },
+    magnitude: 3.63,
+    sister: false,
+  },
+  {
+    name: 'Electra',
+    designation: '17 Tau',
+    ra: { h: 3, m: 44, s: 52.537 },
+    dec: { d: 24, m: 6, s: 48.016 },
+    magnitude: 3.7,
+    sister: true,
+  },
+  {
+    name: 'Maia',
+    designation: '20 Tau',
+    ra: { h: 3, m: 45, s: 49.608 },
+    dec: { d: 24, m: 22, s: 3.878 },
+    magnitude: 3.87,
+    sister: true,
+  },
+  {
+    name: 'Merope',
+    designation: '23 Tau',
+    ra: { h: 3, m: 46, s: 19.586 },
+    dec: { d: 23, m: 56, s: 54.092 },
+    magnitude: 4.18,
+    sister: true,
+  },
+  {
+    name: 'Taygeta',
+    designation: '19 Tau',
+    ra: { h: 3, m: 45, s: 12.5 },
+    dec: { d: 24, m: 28, s: 2.186 },
+    magnitude: 4.3,
+    sister: true,
+  },
+  {
+    name: 'Pleione',
+    designation: '28 Tau',
+    ra: { h: 3, m: 49, s: 11.217 },
+    dec: { d: 24, m: 8, s: 12.157 },
+    magnitude: 5.09,
+    sister: false,
+  },
+  {
+    name: 'Celaeno',
+    designation: '16 Tau',
+    ra: { h: 3, m: 44, s: 48.215 },
+    dec: { d: 24, m: 17, s: 22.083 },
+    magnitude: 5.46,
+    sister: true,
+  },
+  {
+    name: 'Asterope',
+    designation: '21 Tau',
+    ra: { h: 3, m: 45, s: 54.476 },
+    dec: { d: 24, m: 33, s: 16.236 },
+    magnitude: 5.76,
+    sister: true,
+  },
+] as const;
+
+export type PleiadesStar = (typeof PLEIADES)[number];
+
+/**
+ * Members whose coordinates are still outstanding.
+ *
+ * Empty, and kept so it can be filled again rather than deleted: the styleguide
+ * renders whatever is in here as a grease-pencil warning, so the next gap in the
+ * data announces itself instead of being noticed in a screenshot.
+ */
+export const PLEIADES_MISSING: readonly string[] = [];
 
 /**
  * Magnitude as a project status system.

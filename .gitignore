@@ -47,3 +47,8 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /blob-report/
+
+# Playwright MCP scratch output — snapshots and console logs from driving the
+# browser during review. Untracked, and ignored by prettier: its .yml files
+# otherwise fail `pnpm format:check`, which fails CI for no reason at all.
+.playwright-mcp/

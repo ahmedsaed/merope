@@ -13,9 +13,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 The landing page and content home for the Merope software studio (merope.dev).
 Individual projects live on subdomains; this repo is the front door.
 
-Read `docs/BRAND.md` before touching design, `docs/LORE.md` before writing any
-astronomical claim, and `docs/ROADMAP.md` before deciding something is in or out
-of scope.
+**New here? Start with `docs/HANDOFF.md`** — current state, the one open
+blocker, the decisions waiting on a human, and the failures already hit.
+
+Then read `docs/BRAND.md` before touching design, `docs/LORE.md` before writing
+any astronomical claim, and `docs/ROADMAP.md` before deciding something is in or
+out of scope.
 
 ## Non-negotiables
 
@@ -40,10 +43,17 @@ of scope.
 ```
 src/design/     The design system. Kept self-contained so Phase 6 can lift it
                 into a package — nothing here may import from src/app.
-src/lib/        merope.ts (lore), site.ts (config), content/ (build-time loader)
+                tokens.css, fonts.ts, theme.ts, prose.css, and glyph.ts —
+                the one switch for how a star is drawn anywhere on the site.
+src/design/components/  Mark, Wordmark, StarField, HeroField, SkyBackdrop,
+                Catalogue, SiteHeader, SiteFooter, ThemeToggle, primitives
+src/lib/        merope.ts (lore), sky.ts (projection), site.ts (config),
+                field.ts (GENERATED — pnpm fetch:field), content/ (loader)
 content/        notes/, changelog/, projects/ — markdown with validated frontmatter
-scripts/        shoot.ts (screenshots), check-content.ts, static-server.ts
-docs/           BRAND.md (direction), LORE.md (verified facts + sources),
+scripts/        shoot.ts (screenshots), render-og.ts, fetch-field.ts,
+                check-content.ts, static-server.ts
+docs/           HANDOFF.md (start here), BRAND.md (direction),
+                LORE.md (verified facts + sources),
                 ROADMAP.md (phases and decisions)
 ```
 
@@ -57,6 +67,13 @@ screenshots of every route in both themes at both breakpoints to `.shots/`, and
 fails on any console error. A green build says nothing about whether a page is
 any good.
 
+**The OG card is generated, not hand-drawn.** It is a real route at
+`/styleguide/og` built from the same components as everything else;
+`pnpm build && pnpm render:og` screenshots it to `src/app/opengraph-image.png`,
+which is committed because the build cannot assume a browser. Re-run it whenever
+the mark, the palette, the thesis or the star field changes — the tests check
+the file is a valid 1200x630@2x PNG, but nothing can check that it is current.
+
 ## Traps already hit here
 
 - **Tailwind v4 tree-shakes `@theme` variables** that no generated utility
@@ -69,3 +86,67 @@ any good.
 - **YAML parses an unquoted `date: 2026-09-13` into a `Date`**, not a string, so
   frontmatter schemas must accept both.
 - Next 16 removed the `eslint` key from `next.config.ts`; lint is its own step.
+- **A favicon cannot read CSS variables.** `src/app/icon.svg` renders outside the
+  document, so it carries literal hex and a hand-copied ring path.
+  `tests/design.test.ts` asserts it stays identical to `Mark.tsx`; if you change
+  the mark, change both.
+- **No star anywhere on this site is hand-placed** — not the nine, not the
+  labels, and not the 650 in the background. The cluster comes from published
+  coordinates in `merope.ts` via `sky.ts`; labels are solved around them by
+  `placeLabels`, because Atlas and Pleione are five arcminutes apart and a fixed
+  offset puts one label on another's star; the background is a real Gaia DR3
+  query (`pnpm fetch:field`). A scatter of invented dots would break this rule
+  _and_ be the particle starfield `docs/BRAND.md` rejected the Observatory
+  direction for. `tests/lore.test.ts` asserts the cluster is complete.
+- **How a star is drawn is one constant**, `STAR_SHAPE` in `src/design/glyph.ts`.
+  The hero cluster and the page backdrop are the same kind of object at two
+  scales; if they disagree about what a star looks like, the page has two star
+  systems in it. The file also carries a per-shape scale so the two glyphs are
+  matched by ink rather than by radius.
+- **A theme change is a 900ms cross-fade, and everything has to join it.**
+  `body` transitions its own colours; anything painting a token another way — an
+  SVG `fill` or `stroke`, a gradient `stop-color`, a background behind a cut-out
+  — snaps instantly unless it carries the `exposure` utility, and one element
+  snapping while the rest fades reads as a glitch. **A CSS gradient cannot be
+  transitioned at all**, which is why the clearing under the hero field is a flat
+  `background-color` behind a static `mask-image`, not a `radial-gradient` of
+  `--ground`. That bug shipped once and was visible as a patch of the old theme
+  around the cluster for the whole fade.
+- **`mag-${n}` cannot be written as a Tailwind class.** v4 scans source text and
+  never sees an interpolated name. The magnitude ramp has to arrive as
+  `var(--mag-N)` in an inline style — which is why `Annotation` takes a `style`.
+- **The plate/sky chips must not read `--ground` or `--ink`.** They are samples
+  of the two themes, so they cannot follow the active one — the plate chip has to
+  look like a plate while you are looking at the sky. They read `--plate-*` and
+  `--sky-*`, which `tokens.css` names once and the themes themselves resolve
+  from. `currentColor` is the obvious choice here and it is wrong: it made both
+  chips light in `sky` and collapsed the negative/positive pair into "outline
+  icon, filled icon".
+- **A tooltip triggered by `:focus-within` stays open after a mouse click,**
+  because the button keeps focus. Use `peer-focus-visible` — the keyboard user
+  only, who is the one who needs it.
+- **Decorative bleed must not widen the document.** The hero's clearing was
+  `scale-125` and pushed the page 17px past the viewport at 390px — a horizontal
+  scrollbar on every phone. It bleeds only vertically now. Check
+  `scrollWidth === clientWidth` at 390px after touching the hero, and check it
+  against the **static export**: `next dev` injects an overlay with its own
+  overflow and will mislead you in both directions.
+- **Never put `scroll-snap-align` on a section that can outgrow the screen.**
+  When a snap area is larger than the snapport, the scroller may only rest where
+  that area still covers the viewport — so every position past the section's
+  bottom edge is dragged back to it. With a catalogue 1.7 screens tall this made
+  the footer literally unreachable: the document refused to scroll past 1552 of 1812. **`proximity` does not save you.** The oversized-area rule applies
+  whatever the strictness, which is the opposite of what the keyword sounds like
+  it promises. `screenful` therefore snaps on a zero-height `::before` marker at
+  the section's top edge, which can never be larger than the snapport. The
+  marker is absolutely positioned so `justify-content: center` cannot drag it
+  into the middle of the section it is meant to mark, and it carries
+  `scroll-margin-top: var(--screen-offset)` so the first screen settles at the
+  top of the document instead of scrolling the header off it.
+- **Seed draft content before trusting any scroll or layout behaviour.** With
+  one catalogue row every section fits a screen and the bug above is invisible.
+  `draft: true` builds in `pnpm dev` and is excluded from `pnpm build` and
+  `check:content`, so seed files can never reach production.
+- **The nav renders `liveNav()`, not `NAV`.** Every item carries a `live` flag;
+  flipping it is the last step of building a route. The site never ships a dead
+  link or a stub page.

@@ -107,10 +107,31 @@ layout, but the annotations glow and the reflection nebula blooms behind the
 wordmark.
 
 These are not light and dark modes. They are **two ways of recording the same
-sky**, and the control says so: it is labelled `plate / sky`, not a sun and a
-moon. The joke underneath is that early astrophotography worked on **negatives**,
-so the light theme is, correctly, the negative. Switching themes switches between
-the plate and what it recorded.
+sky**, and the control says so. The joke underneath is that early
+astrophotography worked on **negatives**, so the light theme is, correctly, the
+negative. Switching themes switches between the plate and what it recorded.
+
+**How the control says it.** It was originally two words, `plate / sky` — never
+a sun and a moon, and that part still holds. But the words turned out to be
+jargon: a first-time visitor has no way to guess which is which, or that the
+pairing means anything at all. So it is now two chips, each a sample of the
+theme it selects — the same three stars, once dark on pale stock and once pale
+on the void. That is the idea drawn rather than described, and it is the one
+place on the site where the negative is visible next to the positive.
+
+Two rules fell out of building it, and both are load-bearing:
+
+- **The chips do not follow the active theme.** The plate chip has to look like
+  a plate while you are looking at the sky, or the control is describing the
+  wrong thing. They read the two palettes named once in `tokens.css` rather than
+  `--ground` and `--ink`.
+- **Selection is the well behind the chip, never the chip.** It cannot be an
+  inversion (that repaints the chip) and it cannot be opacity (that turns the
+  pale stock grey, which is exactly what it must not look like).
+
+Hovering or focusing either chip explains the premise in a sentence. The
+explanation is a bonus, never the affordance: both buttons carry a real
+accessible name, because there is no hover on a phone.
 
 ### Why this survives scrutiny
 
@@ -147,6 +168,31 @@ Two accents, both earned:
 If a third accent ever seems necessary, the layout is probably wrong.
 
 ---
+
+## The wordmark
+
+**Decided: the circled star.** A dot with a grease-pencil ring around it —
+precisely the gesture an astronomer made on a plate to say _this one_. It is the
+studio thesis as a drawing: the object, and the act of picking it out.
+
+Why this one, over five alternatives:
+
+- It is the only candidate that is both meaningful and legible at 16px. A mark
+  that dies in a browser tab is not a mark, and this one has to serve as the
+  favicon for every project subdomain.
+- It uses both accents for their actual meanings — the star's colour, and the
+  pencil that marks attention — rather than decoratively.
+- The open gap in the ring keeps it hand-drawn rather than geometric.
+- Subdomains inherit the ring and change what sits inside it.
+
+**The asterism stays out of the mark.** Seven sisters at true relative positions
+with Merope circled tells the whole story in one glyph, and is by some distance
+the most meaningful option — but it collapses into noise at favicon size. It
+belongs in the hero, where it can be large enough to work. Rejected as the mark,
+kept as the illustration.
+
+The catalogue designation (`23 Tau · M45`) set under the name is a **lockup, not
+an alternative** — it pairs with the mark in a header and is useless as an icon.
 
 ## The easter eggs
 

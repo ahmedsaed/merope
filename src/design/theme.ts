@@ -3,10 +3,28 @@ export type Theme = (typeof THEMES)[number];
 
 export const THEME_STORAGE_KEY = 'merope.theme';
 
+/**
+ * What the control says when someone asks it.
+ *
+ * The toggle is two glyphs, so this is the only place the idea is spelled out —
+ * and it has to do the whole job for a visitor who has never heard of Merope.
+ * Kept here rather than in the component because it is copy, and because the
+ * glyphs are drawn from the same premise: the plate is a negative of the sky.
+ */
 export const THEME_LABELS: Record<Theme, { name: string; meaning: string }> = {
-  plate: { name: 'Plate', meaning: 'The photographic plate. What the observer wrote down.' },
-  sky: { name: 'Sky', meaning: 'The observation. What was actually up there.' },
+  plate: {
+    name: 'Plate',
+    meaning:
+      'The archive. A photographic plate is a negative, so stars come out dark on pale stock — this is the thing an observer actually handled.',
+  },
+  sky: {
+    name: 'Sky',
+    meaning: 'The observation itself. The same stars, the way they looked before the glass.',
+  },
 };
+
+/** The line that makes the pair make sense. Shown under either explanation. */
+export const THEME_PREMISE = 'Two ways of recording the same sky.';
 
 /**
  * Runs blocking, before first paint, to stop the wrong theme flashing.

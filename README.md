@@ -3,8 +3,10 @@
 The landing page and content home for the **Merope** software studio. Individual
 projects live on subdomains; this repo is the front door.
 
-Merope is the faint one in the Pleiades — and the star whose only claim on the
-nebula around it is that it happens to be lighting dust it did not make.
+Merope is the Pleiad with a story about dimming — not the faintest of the seven,
+which is a thing popular astronomy writing gets wrong constantly, but the one who
+married a mortal and hid her face. Her only claim on the nebula around her is
+that she happens to be lighting dust she did not make.
 
 > The star is not the point. What it lights up is.
 
@@ -26,13 +28,15 @@ pnpm install
 pnpm dev
 ```
 
-| Command                    |                                               |
-| -------------------------- | --------------------------------------------- |
-| `pnpm dev`                 | Dev server                                    |
-| `pnpm build`               | Static export to `out/`                       |
-| `pnpm verify`              | Everything CI runs                            |
-| `pnpm shoot / /styleguide` | Screenshot routes in both themes to `.shots/` |
-| `pnpm check:content`       | Validate frontmatter and cross-references     |
+| Command                    |                                                |
+| -------------------------- | ---------------------------------------------- |
+| `pnpm dev`                 | Dev server                                     |
+| `pnpm build`               | Static export to `out/`                        |
+| `pnpm verify`              | Everything CI runs                             |
+| `pnpm shoot / /styleguide` | Screenshot routes in both themes to `.shots/`  |
+| `pnpm check:content`       | Validate frontmatter and cross-references      |
+| `pnpm fetch:field`         | Re-query Gaia for the background star field    |
+| `pnpm render:og`           | Regenerate the Open Graph card (needs a build) |
 
 `/styleguide` renders every design token in both themes on one page.
 
@@ -52,6 +56,8 @@ in `pnpm dev` and out of the built site.
 
 ## Documentation
 
+- [`docs/HANDOFF.md`](docs/HANDOFF.md) — **start here.** Current state, what is
+  open, decisions waiting on a human, and the traps already hit.
 - [`docs/BRAND.md`](docs/BRAND.md) — the name, the direction, the easter eggs,
   and the failure mode to avoid.
 - [`docs/LORE.md`](docs/LORE.md) — every astronomical claim the site makes, with

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { SkyBackdrop } from '@/design/components/SkyBackdrop';
 import { fontVariables } from '@/design/fonts';
 import { THEME_INIT_SCRIPT } from '@/design/theme';
 import { SITE } from '@/lib/site';
@@ -21,8 +22,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   // One entry per theme so the browser chrome matches the plate it is framing.
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f7f3ec' },
-    { media: '(prefers-color-scheme: dark)', color: '#12151f' },
+    { media: '(prefers-color-scheme: light)', color: '#f6f3ed' },
+    { media: '(prefers-color-scheme: dark)', color: '#090e17' },
   ],
 };
 
@@ -33,7 +34,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Blocking on purpose: a theme flash is worse than a millisecond. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="grain min-h-dvh">{children}</body>
+      <body className="grain min-h-dvh">
+        {/* Behind everything, on every route. The site stands on a sky rather
+            than illustrating one — see SkyBackdrop. */}
+        <SkyBackdrop />
+        {children}
+      </body>
     </html>
   );
 }
