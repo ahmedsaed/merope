@@ -157,7 +157,7 @@ CSS gradient cannot be transitioned at all. See `AGENTS.md`.
 
 ## Phase 3 — Content engine
 
-**In progress.** Notes are done; the rest of the routes are not.
+**Routes are done.** Two items are deliberately deferred; see the end.
 
 - ✅ `/notes` index + note pages with real typography.
 - ✅ **Added to the home page:** the recent-notes strip, above the footer.
@@ -171,12 +171,27 @@ CSS gradient cannot be transitioned at all. See `AGENTS.md`.
 - ✅ Frontmatter is typeset (`src/lib/typeset.ts`). Note bodies went through
   smartypants and frontmatter did not, so a standfirst had typewriter
   apostrophes directly above a body that did not.
-- `/changelog` — combined feed across projects, plus per-project views.
-- `/projects/[slug]` — project pages, with their releases inline.
-- MDX component library for writing.
-- Sitemap and `robots.txt`.
-- Build-time OG image generation per note and release.
-- Build-time image pipeline (static export has no runtime optimiser).
+- ✅ `/changelog` — one combined list across every project. The per-project view
+  is the project page: the same `ReleaseList` with the name turned off.
+- ✅ `/projects` and `/projects/[slug]` — the catalogue row opened out, with the
+  project's releases inline. Catalogue names now link here rather than straight
+  out to a live site.
+- ✅ `/studio` — and the home for the astronomy. The landing page says almost
+  none of it on purpose; this is the one page where someone has actively asked.
+  It is also where the `23 Tau · M45 · B6IV(e)` line went after it was cut from
+  the hero.
+- ✅ Sitemap and `robots.txt`, generated from the content layer so a note that
+  exists is a note that is listed, and a draft cannot leak into either.
+- **Deferred, deliberately:**
+  - _An MDX component library._ There is one component (`Annotation`) and one
+    author. A library needs a second consumer to teach it the right API.
+  - _Per-note OG images._ The studio card is a screenshot of a real route, which
+    needs a browser; per-note means either one committed PNG per note or moving
+    to Satori, which cannot render the SVG star field the card is built from.
+    That is a design decision, not a chore — see HANDOFF.
+  - _A build-time image pipeline._ No note contains an image yet. Building the
+    pipeline first is exactly the speculative infrastructure this project keeps
+    refusing to write.
 
 ---
 

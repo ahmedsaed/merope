@@ -53,7 +53,7 @@ export default async function NotePage({ params }: { params: Promise<Params> }) 
   const project = note.project ? getProject(note.project) : undefined;
 
   return (
-    <Page>
+    <Page width="reading">
       <article className="py-14">
         <header className="max-w-(--measure-prose)">
           <Annotation as="p" tone="faint" className="tabular-nums">

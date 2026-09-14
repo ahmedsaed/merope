@@ -177,8 +177,21 @@ a call about the studio, not about the site.
 
 `docs/ROADMAP.md` has the full list. The shape of it:
 
-- ~~`/notes` index and note pages~~ — done, along with the home-page strip, the
-  `Page` shell and frontmatter typesetting.
+**Phase 3's routes are all built:** `/notes`, `/notes/[slug]`, `/projects`,
+`/projects/[slug]`, `/changelog`, `/studio`, plus `sitemap.xml` and
+`robots.txt`. Every nav item is `live: true` — the nav is full for the first
+time. What is left is two deliberate deferrals:
+
+- **Per-note OG images.** The studio card is a screenshot of a real route
+  (`/styleguide/og`), which needs a browser, which is why the PNG is committed.
+  Per-note means either one committed PNG per note — a screenshot run on every
+  publish — or moving to `next/og` and Satori, which renders no SVG filters and
+  so cannot draw the star field the card is built from. A simpler per-note card
+  (type on ground, no field) would work in Satori and would not match the studio
+  card. **This is a design decision, not a chore.** Pick one deliberately.
+- **A build-time image pipeline.** No note contains an image yet. Writing the
+  pipeline first is the speculative infrastructure this project keeps refusing
+  to write; it wants a real image with real dimensions to be built against.
 - `/changelog`, `/projects/[slug]`, `/studio`.
 - **Then flip `live: true`** on those entries in `NAV` (`src/lib/site.ts`). The
   header renders `liveNav()`, so an item appears the moment its route does.

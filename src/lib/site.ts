@@ -22,10 +22,10 @@ export const SITE = {
  * last step of building the route, not a separate decision.
  */
 export const NAV = [
-  { href: '/projects', label: 'Projects', live: false },
+  { href: '/projects', label: 'Projects', live: true },
   { href: '/notes', label: 'Notes', live: true },
-  { href: '/changelog', label: 'Changelog', live: false },
-  { href: '/studio', label: 'Studio', live: false },
+  { href: '/changelog', label: 'Changelog', live: true },
+  { href: '/studio', label: 'Studio', live: true },
 ] as const;
 
 export const liveNav = () => NAV.filter((item) => item.live);

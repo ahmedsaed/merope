@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { formatDate } from '@/lib/format';
 import type { Magnitude } from '@/lib/merope';
 import { Annotation, MagnitudeDot } from './primitives';
@@ -29,7 +30,9 @@ export type CatalogueEntry = {
   kind: string;
   /** What astronomers call a telescope's first real image. */
   firstLight: Date;
-  /** The live site, if there is one. The name links to it. */
+  /** The project's own page on this site. The name links here when it exists. */
+  href?: string;
+  /** The live site, if there is one. */
   url?: string;
   repo?: string;
 };
@@ -46,7 +49,14 @@ export function Catalogue({ entries }: { entries: readonly CatalogueEntry[] }) {
               {/* The dot is the status, not an ornament: its size and opacity
                   are the value, so magnitude reads before anything is read. */}
               <MagnitudeDot magnitude={entry.magnitude} size={11} />
-              {entry.url ? (
+              {/* Prefer this site's own page over the project's live site: a
+                  catalogue entry should open the catalogue's account of a
+                  thing, with the outward links offered beside it. */}
+              {entry.href ? (
+                <Link href={entry.href} className="hover:text-accent transition-colors">
+                  {entry.name}
+                </Link>
+              ) : entry.url ? (
                 <a href={entry.url} className="hover:text-accent transition-colors">
                   {entry.name}
                 </a>
@@ -68,15 +78,29 @@ export function Catalogue({ entries }: { entries: readonly CatalogueEntry[] }) {
 
           <p className="text-ink-muted mt-2.5 max-w-(--measure-prose)">{entry.summary}</p>
 
-          {entry.repo ? (
-            <a
-              href={entry.repo}
-              className="annotation text-ink-faint hover:text-accent mt-3 inline-block transition-colors"
-              rel="noreferrer"
-              target="_blank"
-            >
-              Source
-            </a>
+          {entry.url || entry.repo ? (
+            <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1">
+              {entry.url ? (
+                <a
+                  href={entry.url}
+                  className="annotation text-ink-faint hover:text-accent transition-colors"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Visit
+                </a>
+              ) : null}
+              {entry.repo ? (
+                <a
+                  href={entry.repo}
+                  className="annotation text-ink-faint hover:text-accent transition-colors"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Source
+                </a>
+              ) : null}
+            </p>
           ) : null}
         </li>
       ))}

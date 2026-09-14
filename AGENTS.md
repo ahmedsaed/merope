@@ -148,6 +148,12 @@ the file is a valid 1200x630@2x PNG, but nothing can check that it is current.
   they shipped typewriter apostrophes directly above prose that had real ones.
   `content/schema.ts` typesets them on the way in — add new prose fields with
   the `prose()` helper, not a bare `z.string()`.
+- **Check layout at 1920 as well as 1440.** A reading column left-aligned
+  inside the wide shell sat 175px left of centre on a 1920px screen — the header
+  and footer spanned the shell, the text used 60% of it, and the page read as
+  though it had slid sideways. It was wrong at 1440 too; the wider screen just
+  made it obvious. `Page` takes `width="reading"` for single-column pages, which
+  centres the measure while leaving the masthead where it is.
 - **Seed draft content before trusting any scroll or layout behaviour.** With
   one catalogue row every section fits a screen and the bug above is invisible.
   `draft: true` builds in `pnpm dev` and is excluded from `pnpm build` and

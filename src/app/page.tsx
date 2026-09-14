@@ -31,6 +31,7 @@ export default function Home() {
     magnitude: project.magnitude as Magnitude,
     kind: project.kind,
     firstLight: project.firstLight,
+    href: `/projects/${project.slug}`,
     url: project.url,
     repo: project.repo,
   }));
