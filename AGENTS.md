@@ -47,7 +47,7 @@ src/design/     The design system. Kept self-contained so Phase 6 can lift it
                 the one switch for how a star is drawn anywhere on the site.
 src/design/components/  Mark, Wordmark, StarField, HeroField, SkyBackdrop,
                 Page, Margin, Catalogue, NoteList, ReleaseList, SiteHeader,
-                SiteFooter, ThemeToggle, primitives
+                MobileNav, SiteFooter, ThemeToggle, primitives
 src/lib/        merope.ts (lore), sky.ts (projection), site.ts (config),
                 field.ts (GENERATED — pnpm fetch:field), content/ (loader)
 content/        notes/, changelog/, projects/ — markdown with validated frontmatter
@@ -159,6 +159,10 @@ the file is a valid 1200x630@2x PNG, but nothing can check that it is current.
   and it is a direct dependency for exactly that reason. A hand-rolled slugify
   agrees on every simple heading and then disagrees on the first one with an
   ampersand — `Notes & asides` is `notes--asides`, with two hyphens.
+- **The nav collapses behind `MobileNav` below `sm`.** The inline list has
+  roughly 100px of slack at 640px with four items; a fifth spends most of it and
+  a sixth wraps the masthead again. When a route is added, measure the header at
+  640px — the fix is to move the breakpoint to `md`, never to shrink the type.
 - **Check layout at 1920 as well as 1440.** A reading column left-aligned
   inside the wide shell sat 175px left of centre on a 1920px screen — the header
   and footer spanned the shell, the text used 60% of it, and the page read as
