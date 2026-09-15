@@ -18,7 +18,17 @@ import { Annotation } from './primitives';
  */
 
 export type ReleaseEntry = {
-  id: string;
+  /**
+   * The URL fragment this release answers to — `peace-1-7-1`. Unique across
+   * every release, so it serves as the React key as well.
+   */
+  anchor: string;
+  /**
+   * A second fragment for the same row, set on a project's newest release only
+   * — `peace-latest`. The release URL worth linking to from outside the site,
+   * because it does not need editing when the next version ships.
+   */
+  latestAnchor?: string;
   version: string;
   date: Date;
   headline: string;
@@ -40,7 +50,17 @@ export function ReleaseList({
   return (
     <ul className="border-rule border-t">
       {releases.map((release) => (
-        <li key={release.id} className="border-rule border-b py-8">
+        <li
+          key={release.anchor}
+          id={release.anchor}
+          className="anchor-row border-rule border-b py-8"
+        >
+          {/* The rolling alias, as its own marker: an element carries one id,
+              and this row has to answer to two. See `anchor.css`. */}
+          {release.latestAnchor ? (
+            <span id={release.latestAnchor} className="anchor-alias" aria-hidden="true" />
+          ) : null}
+
           <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2">
             <h3 className="flex flex-wrap items-baseline gap-x-3.5 gap-y-1">
               {showProject && release.project ? (
@@ -51,7 +71,20 @@ export function ReleaseList({
                   {release.project.name}
                 </Link>
               ) : null}
-              <span className="annotation text-accent tabular-nums">v{release.version}</span>
+              {/* The version is the permalink, the way a heading in a note is
+                  its own. It is already `--accent`, so the only thing being a
+                  link adds is the § on hover. */}
+              <a
+                href={`#${release.anchor}`}
+                aria-label={
+                  release.project
+                    ? `Permalink to ${release.project.name} v${release.version}`
+                    : `Permalink to v${release.version}`
+                }
+                className="anchor-link annotation text-accent tabular-nums"
+              >
+                v{release.version}
+              </a>
               {/* Grease pencil, used for the one thing it means: this needs your
                   attention before you upgrade. */}
               {release.breaking ? (

@@ -5,7 +5,13 @@ import { Margin, MarginBlock, WithMargin } from '@/design/components/Margin';
 import { Page } from '@/design/components/Page';
 import { ReleaseList, type ReleaseEntry } from '@/design/components/ReleaseList';
 import { Annotation, MagnitudeDot } from '@/design/components/primitives';
-import { getProject, getProjects, getReleasesForProject } from '@/lib/content/collections';
+import {
+  getProject,
+  getProjects,
+  getReleasesForProject,
+  latestReleaseAnchor,
+  releaseAnchor,
+} from '@/lib/content/collections';
 import { Markdown } from '@/lib/content/mdx';
 import { formatDate } from '@/lib/format';
 import { pageMetadata } from '@/lib/seo';
@@ -44,13 +50,15 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
   const meaning = MAGNITUDE_CLASSES.find((m) => m.mag === magnitude);
   const releases = getReleasesForProject(project.slug);
 
-  const entries: ReleaseEntry[] = releases.map((release) => ({
-    id: release.slug,
+  const entries: ReleaseEntry[] = releases.map((release, index) => ({
+    anchor: releaseAnchor(release),
+    // Newest first, so row zero is the one `<project>-latest` points at.
+    latestAnchor: index === 0 ? latestReleaseAnchor(project.slug) : undefined,
     version: release.version,
     date: release.date,
     headline: release.headline,
     breaking: release.breaking,
-    body: release.body ? <Markdown source={release.body} /> : undefined,
+    body: release.body ? <Markdown source={release.body} anchors={false} /> : undefined,
   }));
 
   return (
@@ -73,7 +81,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
               </div>
             ) : null}
 
-            <section className="mt-16">
+            <section id="releases" className="anchor-row mt-16">
               <h2 className="text-heading mb-6 font-normal">Releases</h2>
               {entries.length > 0 ? (
                 <ReleaseList releases={entries} />

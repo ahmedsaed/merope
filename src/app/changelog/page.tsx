@@ -2,7 +2,12 @@ import type { Metadata } from 'next';
 import { Page } from '@/design/components/Page';
 import { ReleaseList, type ReleaseEntry } from '@/design/components/ReleaseList';
 import { Annotation, SectionHead } from '@/design/components/primitives';
-import { getProject, getReleases } from '@/lib/content/collections';
+import {
+  getProject,
+  getReleases,
+  latestReleaseAnchor,
+  releaseAnchor,
+} from '@/lib/content/collections';
 import { Markdown } from '@/lib/content/mdx';
 import { pageMetadata } from '@/lib/seo';
 
@@ -23,10 +28,16 @@ export const metadata: Metadata = pageMetadata({
 export default function ChangelogIndex() {
   const releases = getReleases();
 
+  // The list is newest-first across every project at once, so the first row a
+  // project has here is its newest — and the only one that may carry the
+  // rolling `<project>-latest` alias.
+  const dated = new Set<string>();
+
   const years = releases.reduce<Map<number, ReleaseEntry[]>>((acc, release) => {
     const project = getProject(release.project);
     const entry: ReleaseEntry = {
-      id: release.slug,
+      anchor: releaseAnchor(release),
+      latestAnchor: dated.has(release.project) ? undefined : latestReleaseAnchor(release.project),
       version: release.version,
       date: release.date,
       headline: release.headline,
@@ -34,8 +45,10 @@ export default function ChangelogIndex() {
       // A release may name a project that is a draft, and drafts are absent
       // from a production build. Better no link than a dead one.
       project: project ? { name: project.name, href: `/projects/${project.slug}` } : undefined,
-      body: release.body ? <Markdown source={release.body} /> : undefined,
+      body: release.body ? <Markdown source={release.body} anchors={false} /> : undefined,
     };
+    dated.add(release.project);
+
     const year = release.date.getUTCFullYear();
     acc.set(year, [...(acc.get(year) ?? []), entry]);
     return acc;
