@@ -72,8 +72,35 @@ export function getNotes(): Entry<Note>[] {
   return readCollection('notes', noteSchema).sort(byDateDesc);
 }
 
+/**
+ * Newest version first, numerically — `1.10.0` above `1.9.0`, which a string
+ * comparison gets backwards.
+ */
+function byVersionDesc(a: string, b: string) {
+  const parts = (v: string) =>
+    v
+      .split(/[^0-9]+/)
+      .filter(Boolean)
+      .map(Number);
+  const [left, right] = [parts(a), parts(b)];
+  for (let i = 0; i < Math.max(left.length, right.length); i++) {
+    const diff = (right[i] ?? 0) - (left[i] ?? 0);
+    if (diff !== 0) return diff;
+  }
+  return 0;
+}
+
 export function getReleases(): Entry<Release>[] {
-  return readCollection('changelog', releaseSchema).sort(byDateDesc);
+  return readCollection('changelog', releaseSchema).sort((a, b) => {
+    // A release is dated to the day, and a project that ships on merge puts
+    // several versions on one date — three of Peace's landed on 2026-09-02.
+    // Date alone leaves those to the filesystem's ordering, which is
+    // alphabetical, which is ascending, which is exactly backwards.
+    const byDate = byDateDesc(a, b);
+    if (byDate !== 0) return byDate;
+    if (a.project !== b.project) return a.project.localeCompare(b.project);
+    return byVersionDesc(a.version, b.version);
+  });
 }
 
 export function getProjects(): Entry<Project>[] {

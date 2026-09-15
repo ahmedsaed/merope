@@ -113,7 +113,12 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
 
             {project.url || project.repo ? (
               <MarginBlock label="Elsewhere">
-                <ul className="space-y-1.5">
+                {/* `wrap-anywhere`, because a URL has no spaces to break at and
+                    the margin is a full-width column on a phone. Peace's
+                    releases link is 41 characters and took the document 2px
+                    past the viewport at 390px — a horizontal scrollbar earned
+                    by one path segment. */}
+                <ul className="space-y-1.5 wrap-anywhere">
                   {project.url ? (
                     <li>
                       <a

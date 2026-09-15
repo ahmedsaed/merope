@@ -68,6 +68,34 @@ describe('collections', () => {
     expect([...times]).toEqual([...times].sort((a, b) => b - a));
   });
 
+  it('sorts releases newest first', () => {
+    const times = getReleases().map((r) => r.date.getTime());
+    expect([...times]).toEqual([...times].sort((a, b) => b - a));
+  });
+
+  /**
+   * A release is dated to the day, and a project that ships on merge puts
+   * several versions on one date — three of Peace's 1.x releases landed on
+   * 2026-09-02. Sorting on the date alone leaves those to `readdirSync`, which
+   * is alphabetical, which is ascending, which is exactly backwards on a page
+   * headed "newest first".
+   */
+  it('breaks a same-day tie on the version, highest first', () => {
+    const versions = getReleases()
+      .filter((r) => r.project === 'peace')
+      .map((r) => r.version);
+    expect(versions).toEqual([
+      '1.7.1',
+      '1.6.0',
+      '1.5.0',
+      '1.4.0',
+      '1.3.0',
+      '1.2.0',
+      '1.1.0',
+      '1.0.0',
+    ]);
+  });
+
   it('finds no dangling project references in the real content', () => {
     expect(() => assertReferentialIntegrity()).not.toThrow();
   });
