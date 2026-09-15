@@ -33,14 +33,26 @@ const remarkPlugins = [
   remarkSmartypants,
 ];
 
-const rehypePlugins = [
+const rehypePlugins = [[rehypePrettyCode, prettyCodeOptions]];
+
+/**
+ * Heading anchors, for the surfaces where a heading is a destination.
+ *
+ * A note is a document and its headings are places in it. A release body is
+ * not: it is an entry in a list, and every release the studio has ever shipped
+ * has a section called Added. Slugging those put eight elements called `added`
+ * on `/changelog` — the browser resolves `#added` to the first of them, so six
+ * release bodies carried a § that scrolled the reader to a different release.
+ * The addressable unit of a release is the release, which is what
+ * `releaseAnchor` is for.
+ */
+const anchorPlugins = [
   rehypeSlug,
-  [rehypePrettyCode, prettyCodeOptions],
   [
     rehypeAutolinkHeadings,
     {
       behavior: 'wrap',
-      properties: { className: 'heading-anchor' },
+      properties: { className: 'anchor-link' },
     },
   ],
 ];
@@ -59,7 +71,14 @@ const components = {
   ),
 };
 
-export function Markdown({ source }: { source: string }) {
+export function Markdown({
+  source,
+  /** Off where a heading is a label rather than a destination — see above. */
+  anchors = true,
+}: {
+  source: string;
+  anchors?: boolean;
+}) {
   return (
     <MDXRemote
       source={source}
@@ -69,7 +88,7 @@ export function Markdown({ source }: { source: string }) {
           // Cast: the plugin tuples are correctly shaped but the unified types
           // do not narrow through a shared array literal.
           remarkPlugins: remarkPlugins as never,
-          rehypePlugins: rehypePlugins as never,
+          rehypePlugins: (anchors ? [...anchorPlugins, ...rehypePlugins] : rehypePlugins) as never,
         },
       }}
     />

@@ -43,7 +43,7 @@ out of scope.
 ```
 src/design/     The design system. Kept self-contained so Phase 6 can lift it
                 into a package — nothing here may import from src/app.
-                tokens.css, fonts.ts, theme.ts, prose.css, and glyph.ts —
+                tokens.css, fonts.ts, theme.ts, prose.css, anchor.css, glyph.ts —
                 the one switch for how a star is drawn anywhere on the site.
 src/design/components/  Mark, Wordmark, StarField, HeroField, SkyBackdrop,
                 Page, Margin, Catalogue, NoteList, ReleaseList, SiteHeader,
@@ -212,6 +212,20 @@ browser chrome.
   one catalogue row every section fits a screen and the bug above is invisible.
   `draft: true` builds in `pnpm dev` and is excluded from `pnpm build` and
   `check:content`, so seed files can never reach production.
+- **A release is addressed by `project-version`, never by its filename.**
+  `#peace-1-7-1` comes from frontmatter through `releaseAnchor`, because the
+  anchor is part of a URL somebody has already pasted somewhere and renaming
+  `content/changelog/peace-1-7-1.md` must not break it. A project's newest
+  release carries a second, rolling id — `#peace-latest` — as a zero-size
+  marker inside the row, since an element carries one id and this row answers
+  to two. Both work on `/changelog` and on the project page.
+  `assertUniqueReleaseAnchors` fails the build on a collision, because a
+  duplicate id is resolved silently to the first match and nothing reports it.
+- **Heading anchors are for documents, not for list entries.** Every release
+  body has a section called Added, so slugging them put eight elements called
+  `added` on `/changelog` and six § links that scrolled the reader to a
+  different release. `Markdown` takes `anchors={false}` for exactly this, and
+  `tests/anchors.test.ts` asserts no page ships an id twice.
 - **The nav renders `liveNav()`, not `NAV`.** Every item carries a `live` flag;
   flipping it is the last step of building a route. The site never ships a dead
   link or a stub page.

@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import '../design/tokens.css';
 @import '../design/prose.css';
+@import '../design/anchor.css';
 
 /* ---------------------------------------------------------------------------
  * Bridge the semantic tokens into Tailwind's utility namespace.

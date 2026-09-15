@@ -149,3 +149,55 @@ export function assertReferentialIntegrity(): void {
     throw new Error(`Dangling project references:\n${problems.map((p) => `  ${p}`).join('\n')}`);
   }
 }
+
+/**
+ * The URL fragment a release is addressable by — `peace-1-7-1`.
+ *
+ * Built from the frontmatter rather than from the filename, unlike every other
+ * slug on this site, and deliberately so: an anchor is part of a URL somebody
+ * has already pasted into a README or a release mail. `project` and `version`
+ * are the release's real identity; the file it happens to live in is not, and
+ * renaming it must not break a link that is already out in the world.
+ */
+export function releaseAnchor(release: { project: string; version: string }): string {
+  return `${release.project}-${release.version}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+/**
+ * The fragment that always points at a project's newest release —
+ * `peace-latest`.
+ *
+ * The one release URL worth linking to from outside the site, because it does
+ * not need editing when the next version ships. It is rendered on `/changelog`
+ * and on the project page, on whichever row is first at build time.
+ */
+export function latestReleaseAnchor(project: string): string {
+  return `${project}-latest`;
+}
+
+/**
+ * Two releases that resolve to one anchor.
+ *
+ * Duplicate ids do not fail a build, fail a lint, or look wrong on the page —
+ * the browser simply scrolls to the first one, and the other release is
+ * quietly unreachable by URL. Since `1.7.1` and `1-7-1` normalise to the same
+ * fragment, that can happen without two files ever declaring the same version.
+ */
+export function assertUniqueReleaseAnchors(): void {
+  const seen = new Map<string, string>();
+  const problems: string[] = [];
+
+  for (const release of getReleases()) {
+    const anchor = releaseAnchor(release);
+    const first = seen.get(anchor);
+    if (first) problems.push(`${release.sourcePath}: #${anchor} is already taken by ${first}`);
+    else seen.set(anchor, release.sourcePath);
+  }
+
+  if (problems.length) {
+    throw new Error(`Colliding release anchors:\n${problems.map((p) => `  ${p}`).join('\n')}`);
+  }
+}

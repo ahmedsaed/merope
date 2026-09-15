@@ -83,31 +83,12 @@
   margin-top: 0.6em;
 }
 
-/* Heading anchors: invisible until wanted. The rehype plugin wraps the heading
-   text in a link, so the link must not look like one. */
-.prose .heading-anchor {
-  color: inherit;
-  text-decoration: none;
-  position: relative;
-}
-
-.prose .heading-anchor::after {
-  content: '§';
-  position: absolute;
-  margin-left: 0.4em;
-  color: var(--accent);
-  opacity: 0;
-  transition: opacity var(--dur-fast) var(--easing-plate);
-}
-
-.prose .heading-anchor:hover::after,
-.prose .heading-anchor:focus-visible::after {
-  opacity: 1;
-}
+/* Heading anchors live in `anchor.css`: the release list needs the same
+   affordance and cannot reach a rule scoped to `.prose`. */
 
 /* --- Inline --------------------------------------------------------------- */
 
-.prose a:not(.heading-anchor) {
+.prose a:not(.anchor-link) {
   color: var(--accent);
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
@@ -116,7 +97,7 @@
   transition: text-decoration-color var(--dur-fast) var(--easing-plate);
 }
 
-.prose a:not(.heading-anchor):hover {
+.prose a:not(.anchor-link):hover {
   text-decoration-color: var(--accent);
 }
 

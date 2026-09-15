@@ -1,0 +1,76 @@
+/*
+ * ANCHORS
+ *
+ * The self-link: a link to the thing it labels. A heading inside a note is one,
+ * and the version on a release row is the other — which is why these rules are
+ * here rather than in `prose.css`, which is scoped to `.prose` on purpose and
+ * may not leak into anything that is data rather than reading.
+ *
+ * A self-link must not look like a link. The text it wraps is already set and
+ * already the right colour; all the link adds is a § that appears when someone
+ * goes looking for it.
+ */
+
+:root {
+  /* Where an anchored row comes to rest. The header is not sticky, so this is
+     air above the thing you followed a link to, not clearance for furniture. */
+  --anchor-offset: 2.5rem;
+}
+
+.anchor-link {
+  position: relative;
+  text-decoration: none;
+}
+
+/* In prose the link wraps the heading itself, so it takes the heading's colour.
+   Outside prose the element brings its own — a release version is `--accent`
+   before it is a link, and inheriting here would take that away. */
+.prose .anchor-link {
+  color: inherit;
+}
+
+/* Absolute, so the mark hangs in the space after the text rather than reflowing
+   the line it sits on the moment it appears. 0.4em keeps it inside the gap a
+   release heading already leaves between the version and whatever follows. */
+.anchor-link::after {
+  content: '§';
+  position: absolute;
+  margin-left: 0.4em;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--easing-plate);
+}
+
+.anchor-link:hover::after,
+.anchor-link:focus-visible::after {
+  opacity: 1;
+}
+
+/* A row whose anchor is one small string in a wider line reveals the mark on
+   its own hover as well: a version number is a poor target to have to find
+   before you can discover there is anything to find. */
+.anchor-row {
+  position: relative;
+  scroll-margin-top: var(--anchor-offset);
+}
+
+.anchor-row:hover .anchor-link::after {
+  opacity: 1;
+}
+
+/*
+ * An alias for the row above it.
+ *
+ * An element carries one id, and a release that is also "the latest" needs two.
+ * The second is its own zero-size marker at the row's top edge — out of flow,
+ * so the row it marks is not changed in any way by being marked.
+ */
+.anchor-alias {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  scroll-margin-top: var(--anchor-offset);
+}

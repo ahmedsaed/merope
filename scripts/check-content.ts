@@ -7,6 +7,7 @@
  */
 import {
   assertReferentialIntegrity,
+  assertUniqueReleaseAnchors,
   getNotes,
   getProjects,
   getReleases,
@@ -17,6 +18,7 @@ try {
   const notes = getNotes();
   const releases = getReleases();
   assertReferentialIntegrity();
+  assertUniqueReleaseAnchors();
 
   console.log(
     `content ok — ${projects.length} project(s), ${notes.length} note(s), ${releases.length} release(s)`,

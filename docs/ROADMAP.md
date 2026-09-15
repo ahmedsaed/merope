@@ -262,27 +262,28 @@ open and is worth having on its own.
 
 ## Decisions on record
 
-| Decision        | Choice                    | Why                                                                                              |
-| --------------- | ------------------------- | ------------------------------------------------------------------------------------------------ |
-| Framework       | Next.js 16, App Router    | Asked for. Static export keeps it honest.                                                        |
-| Output          | `output: 'export'`        | No server, no runtime, portable between hosts.                                                   |
-| Hosting         | Vercel                    | Chosen. `vercel.json` carries headers; nothing else is Vercel-specific.                          |
-| Styling         | Tailwind v4               | CSS-first `@theme` fits a token-driven system better than a JS config.                           |
-| Content         | Hand-rolled loader + MDX  | ~100 lines, build-time only, no abandoned dependency to migrate off.                             |
-| Validation      | Zod at build time         | A broken post should fail the build, not render an empty date.                                   |
-| Package manager | pnpm                      | Fast, and ready if Phase 6 turns this into a workspace.                                          |
-| Repo shape      | Single app                | `src/design/` kept separable so Phase 6 is a move, not a rewrite.                                |
-| Catalogue       | Index, not table          | A bordered table reads as a spreadsheet at three rows. Decided by looking.                       |
-| Coordinates     | SIMBAD, all nine rows     | One catalogue, one epoch. A table nobody can re-derive is one nobody checks.                     |
-| Nav             | Only live routes          | `live` per item. No dead links, no stub pages; the nav grows with the site.                      |
-| Newsletter      | Buttondown                | Markdown-native. Note: the send-from-RSS argument lapsed when the feed was dropped.              |
-| Feeds           | Dropped entirely          | No RSS or Atom. Asked for. Do not re-add one because a phase list once mentioned it.             |
-| Subdomains      | Own design, own styles    | Phase 5 dropped. A shared header for sites that will not look alike solves nothing.              |
-| Design package  | Only on a second consumer | Phase 6 indefinite. `src/design/` stays self-contained so the option survives.                   |
-| Background      | Real sky, site-wide       | 650 Gaia stars, not a scatter. A particle field is the cliché this direction exists to avoid.    |
-| Star glyph      | One constant, both scales | Cluster and backdrop must agree, or the page has two star systems in it.                         |
-| Theme control   | Two chips + a tooltip     | `plate / sky` read as jargon to a first-time visitor. Still not a sun and a moon.                |
-| Page rhythm     | One section, one screen   | `screenful`. Sections fill the viewport and centre content; snap on a marker, never the section. |
+| Decision        | Choice                                             | Why                                                                                                                  |
+| --------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Framework       | Next.js 16, App Router                             | Asked for. Static export keeps it honest.                                                                            |
+| Output          | `output: 'export'`                                 | No server, no runtime, portable between hosts.                                                                       |
+| Hosting         | Vercel                                             | Chosen. `vercel.json` carries headers; nothing else is Vercel-specific.                                              |
+| Styling         | Tailwind v4                                        | CSS-first `@theme` fits a token-driven system better than a JS config.                                               |
+| Content         | Hand-rolled loader + MDX                           | ~100 lines, build-time only, no abandoned dependency to migrate off.                                                 |
+| Validation      | Zod at build time                                  | A broken post should fail the build, not render an empty date.                                                       |
+| Package manager | pnpm                                               | Fast, and ready if Phase 6 turns this into a workspace.                                                              |
+| Repo shape      | Single app                                         | `src/design/` kept separable so Phase 6 is a move, not a rewrite.                                                    |
+| Catalogue       | Index, not table                                   | A bordered table reads as a spreadsheet at three rows. Decided by looking.                                           |
+| Coordinates     | SIMBAD, all nine rows                              | One catalogue, one epoch. A table nobody can re-derive is one nobody checks.                                         |
+| Nav             | Only live routes                                   | `live` per item. No dead links, no stub pages; the nav grows with the site.                                          |
+| Newsletter      | Buttondown                                         | Markdown-native. Note: the send-from-RSS argument lapsed when the feed was dropped.                                  |
+| Feeds           | Dropped entirely                                   | No RSS or Atom. Asked for. Do not re-add one because a phase list once mentioned it.                                 |
+| Subdomains      | Own design, own styles                             | Phase 5 dropped. A shared header for sites that will not look alike solves nothing.                                  |
+| Design package  | Only on a second consumer                          | Phase 6 indefinite. `src/design/` stays self-contained so the option survives.                                       |
+| Background      | Real sky, site-wide                                | 650 Gaia stars, not a scatter. A particle field is the cliché this direction exists to avoid.                        |
+| Star glyph      | One constant, both scales                          | Cluster and backdrop must agree, or the page has two star systems in it.                                             |
+| Theme control   | Two chips + a tooltip                              | `plate / sky` read as jargon to a first-time visitor. Still not a sun and a moon.                                    |
+| Page rhythm     | One section, one screen                            | `screenful`. Sections fill the viewport and centre content; snap on a marker, never the section.                     |
+| Release anchors | `project-version`, plus a rolling `project-latest` | Frontmatter, not the filename: a shared URL must survive a rename, and "latest" must not need editing every release. |
 
 ### Known constraints of static export
 
