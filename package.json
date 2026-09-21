@@ -18,7 +18,8 @@
     "prebuild": "pnpm check:content",
     "test:e2e": "playwright test",
     "render:og": "tsx scripts/render-og.ts",
-    "fetch:field": "tsx scripts/fetch-field.ts"
+    "fetch:field": "tsx scripts/fetch-field.ts",
+    "sync:releases": "tsx scripts/sync-releases.ts"
   },
   "dependencies": {
     "github-slugger": "^2.0.0",

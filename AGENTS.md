@@ -52,7 +52,8 @@ src/lib/        merope.ts (lore), sky.ts (projection), site.ts (config),
                 field.ts (GENERATED — pnpm fetch:field), content/ (loader)
 content/        notes/, changelog/, projects/ — markdown with validated frontmatter
 scripts/        shoot.ts (screenshots), render-og.ts (OG card + app icon),
-                fetch-field.ts, check-content.ts, static-server.ts
+                fetch-field.ts, check-content.ts, static-server.ts,
+                sync-releases.ts + release-notes.ts (GitHub releases → changelog)
 docs/           HANDOFF.md (start here), BRAND.md (direction),
                 LORE.md (verified facts + sources),
                 ROADMAP.md (phases and decisions)
@@ -221,6 +222,19 @@ browser chrome.
   to two. Both work on `/changelog` and on the project page.
   `assertUniqueReleaseAnchors` fails the build on a collision, because a
   duplicate id is resolved silently to the first match and nothing reports it.
+- **Markdown pasted from anywhere else goes through MDX, and MDX rejects HTML
+  comments.** `<!-- -->` is a build error — _Unexpected character `!`_, raised
+  while prerendering the page rather than while reading the file, so the message
+  names `/changelog` and not the release that broke it. GitHub's own release
+  template ships one, which is why `normaliseBody` in `scripts/release-notes.ts`
+  strips them. In hand-written content use `{/* */}`.
+- **`pnpm sync:releases` writes drafts, and that is the design.** A GitHub
+  release carries the version, the date and the notes; it does not carry the
+  `headline` — the sentence a row on `/changelog` is read as — or `breaking`,
+  which is what `--mark` exists for. Both are guessed, so every synced file
+  lands as `draft: true` and is invisible to `pnpm build` and `check:content`
+  until a human has read it. Files are keyed on `releaseAnchor`, never on the
+  filename, so a re-run cannot duplicate or overwrite one.
 - **Heading anchors are for documents, not for list entries.** Every release
   body has a section called Added, so slugging them put eight elements called
   `added` on `/changelog` and six § links that scrolled the reader to a
