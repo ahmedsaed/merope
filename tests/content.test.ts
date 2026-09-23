@@ -45,6 +45,26 @@ describe('frontmatter schemas', () => {
   });
 });
 
+/**
+ * Numeric, and written out here rather than imported: a test that borrows the
+ * implementation's comparator agrees with it by construction, including where
+ * both are wrong. `1.10.0` above `1.9.0` is the case a string sort gets
+ * backwards.
+ */
+function highestFirst(a: string, b: string): number {
+  const parts = (version: string) =>
+    version
+      .split(/[^0-9]+/)
+      .filter(Boolean)
+      .map(Number);
+  const [left, right] = [parts(a), parts(b)];
+  for (let i = 0; i < Math.max(left.length, right.length); i += 1) {
+    const difference = (right[i] ?? 0) - (left[i] ?? 0);
+    if (difference !== 0) return difference;
+  }
+  return 0;
+}
+
 describe('collections', () => {
   it('loads every sample file without throwing', () => {
     expect(getProjects().length).toBeGreaterThan(0);
@@ -79,21 +99,28 @@ describe('collections', () => {
    * 2026-09-02. Sorting on the date alone leaves those to `readdirSync`, which
    * is alphabetical, which is ascending, which is exactly backwards on a page
    * headed "newest first".
+   *
+   * Asserted as the rule rather than as the list of versions it held when this
+   * was written. `pnpm sync:releases` adds releases to this directory, so a
+   * literal list is a test that fails every time the studio ships something —
+   * which is the one moment nobody wants to be reading a test failure. The
+   * guard is the ordering; the content is whatever it is by now.
    */
   it('breaks a same-day tie on the version, highest first', () => {
-    const versions = getReleases()
-      .filter((r) => r.project === 'peace')
-      .map((r) => r.version);
-    expect(versions).toEqual([
-      '1.7.1',
-      '1.6.0',
-      '1.5.0',
-      '1.4.0',
-      '1.3.0',
-      '1.2.0',
-      '1.1.0',
-      '1.0.0',
-    ]);
+    const days = new Map<string, string[]>();
+    for (const release of getReleases().filter((r) => r.project === 'peace')) {
+      const day = release.date.toISOString().slice(0, 10);
+      days.set(day, [...(days.get(day) ?? []), release.version]);
+    }
+
+    const ties = [...days.values()].filter((versions) => versions.length > 1);
+    // Without a day carrying two releases this test proves nothing, and the
+    // bug it guards would sail straight through it.
+    expect(ties.length).toBeGreaterThan(0);
+
+    for (const versions of ties) {
+      expect(versions).toEqual([...versions].sort(highestFirst));
+    }
   });
 
   it('finds no dangling project references in the real content', () => {

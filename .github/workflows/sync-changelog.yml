@@ -123,6 +123,12 @@ jobs:
           # the pull request this job opens does not start CI, so without this
           # the first thing to read these files would be the preview deploy.
           pnpm build
+          # The unit tests too, because some of them read the real content
+          # directory — which this job has just written to. A test pinned to
+          # what `content/changelog` held when it was written fails on the
+          # first release the studio ships, and CI is not there to catch it:
+          # the pull request this job opens does not start it.
+          pnpm test
           pnpm exec prettier --check content/changelog
 
       - name: Commit and push
