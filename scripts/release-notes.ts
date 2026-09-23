@@ -554,7 +554,7 @@ export function deriveHeadline(
   version: string,
   project: string,
 ): { headline: string; source: HeadlineSource; body: string } {
-  const lines = body.split('\n');
+  const lines = withoutSelfNaming(body, version, project).split('\n');
   let fenced = false;
 
   for (const [index, line] of lines.entries()) {
@@ -581,16 +581,48 @@ export function deriveHeadline(
     return {
       headline: sentence,
       source: 'body',
-      body: spent ? withoutLine(lines, index) : body,
+      body: spent ? withoutLine(lines, index) : lines.join('\n'),
     };
   }
 
+  const cleaned = lines.join('\n');
   const name = release.name?.trim();
   if (name && name.length <= HEADLINE_MAX && !isVersionLike(name, version, project)) {
-    return { headline: plainText(name), source: 'name', body };
+    return { headline: plainText(name), source: 'name', body: cleaned };
   }
 
-  return { headline: `Version ${version}`, source: 'version', body };
+  return { headline: `Version ${version}`, source: 'version', body: cleaned };
+}
+
+/**
+ * Drops a line that says nothing but the release's own name.
+ *
+ * Peace's notes open with `Peace 1.10.0 (build 168)`, which is the first prose
+ * in the body and was therefore taken as the headline — the row's own furniture,
+ * read back to the reader who is looking straight at it. It is not content
+ * either, so it goes rather than being skipped: nothing downstream wants a line
+ * repeating the two things printed above it.
+ *
+ * Prose only. A heading that names the release is a structure somebody chose,
+ * and a list item saying `1.10.0` is likely to be about something.
+ */
+function withoutSelfNaming(body: string, version: string, project: string): string {
+  let fenced = false;
+
+  return body
+    .split('\n')
+    .filter((line) => {
+      if (/^\s*(```+|~~~+)/.test(line)) {
+        fenced = !fenced;
+        return true;
+      }
+      const trimmed = line.trim();
+      if (fenced || !trimmed || /^(#{1,6}\s|[-*+]\s|\d+\.\s|>|\||!\[)/.test(trimmed)) return true;
+      return !isVersionLike(plainText(trimmed), version, project);
+    })
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 /** Drops a line, and the blank line it leaves behind at the top of a body. */
