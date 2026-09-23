@@ -141,6 +141,139 @@ export function planEntries(
 }
 
 /**
+ * What a project says in every release, which is therefore not news.
+ *
+ * Release notes generated from a template carry the same sentences every time:
+ * how to install the thing, which commit it was cut from, what the build
+ * number was. Read one release and it is useful context. Read a changelog of
+ * them and it is the same paragraph fifteen times, above the two lines that
+ * actually differ.
+ *
+ * Rather than name the templates — there is no end to them, and a rule naming
+ * one project's is a rule that only works for that project — this reads the
+ * project's own releases and calls boilerplate what most of them repeat:
+ *
+ * - A prose paragraph that appears, word for word, in more than half of them.
+ *   Lists are left alone: two releases can legitimately fix the same thing
+ *   twice, and dropping a repeated bullet would lose a real change.
+ * - A `Commit: abc123` line whose label recurs in more than half of them while
+ *   the value changes. That is a field, and what it identifies is the build.
+ *
+ * A strict majority, so that a paragraph shared by two releases out of forty is
+ * read as something the author meant both times. With one release there is
+ * nothing to compare and nothing is dropped, which is the right answer: a
+ * sentence is only boilerplate next to the release that repeats it.
+ */
+export type Boilerplate = {
+  paragraphs: ReadonlySet<string>;
+  labels: ReadonlySet<string>;
+};
+
+const LABELLED = /^\s*\*{0,2}([^:\n*]{1,40})\*{0,2}:\s*(\S.*)$/;
+
+/** A line that carries structure rather than prose. */
+const STRUCTURAL = /^\s*(#{1,6}\s|[-*+]\s|\d+\.\s|>|\||```|~~~)/;
+
+function paragraphsOf(body: string): string[] {
+  return body
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+}
+
+export function boilerplateOf(bodies: readonly string[]): Boilerplate {
+  const paragraphCounts = new Map<string, number>();
+  const labelValues = new Map<string, Set<string>>();
+  const labelCounts = new Map<string, number>();
+
+  for (const body of bodies) {
+    const countedParagraphs = new Set<string>();
+    const countedLabels = new Set<string>();
+
+    for (const paragraph of paragraphsOf(body)) {
+      const lines = paragraph.split('\n');
+      const prose = lines.every((line) => !STRUCTURAL.test(line));
+
+      // Counted once per release: a template that says something twice in one
+      // release is still one release saying it.
+      if (prose && !countedParagraphs.has(paragraph)) {
+        countedParagraphs.add(paragraph);
+        paragraphCounts.set(paragraph, (paragraphCounts.get(paragraph) ?? 0) + 1);
+      }
+
+      for (const line of lines) {
+        if (STRUCTURAL.test(line)) continue;
+        const labelled = LABELLED.exec(line);
+        if (!labelled) continue;
+        const [, label, value] = labelled;
+        const values = labelValues.get(label.trim()) ?? new Set<string>();
+        values.add(value.trim());
+        labelValues.set(label.trim(), values);
+        if (!countedLabels.has(label.trim())) {
+          countedLabels.add(label.trim());
+          labelCounts.set(label.trim(), (labelCounts.get(label.trim()) ?? 0) + 1);
+        }
+      }
+    }
+  }
+
+  // A strict majority, and never fewer than two releases: with one release
+  // there is nothing to compare, and everything it says would look repeated.
+  const majority = (count: number) => count >= 2 && count * 2 > bodies.length;
+
+  return {
+    paragraphs: new Set(
+      [...paragraphCounts].filter(([, count]) => majority(count)).map(([paragraph]) => paragraph),
+    ),
+    labels: new Set(
+      [...labelCounts]
+        .filter(([label, count]) => majority(count) && (labelValues.get(label)?.size ?? 0) > 1)
+        .map(([label]) => label),
+    ),
+  };
+}
+
+/** The same body with the project's standing furniture taken out. */
+export function dropBoilerplate(body: string, boilerplate: Boilerplate): string {
+  const kept = blocks(body).map((block) => {
+    const content = paragraphsOf(block.lines.join('\n'))
+      .filter((paragraph) => !boilerplate.paragraphs.has(paragraph))
+      .map((paragraph) =>
+        paragraph
+          .split('\n')
+          .filter((line) => {
+            if (STRUCTURAL.test(line)) return true;
+            const labelled = LABELLED.exec(line);
+            return !labelled || !boilerplate.labels.has(labelled[1].trim());
+          })
+          .join('\n'),
+      )
+      .filter(Boolean)
+      .join('\n\n');
+
+    // A heading is written with a blank line under it, and taking a paragraph
+    // out from under one must not close that gap.
+    const lines = content ? content.split('\n') : [];
+    return {
+      heading: block.heading,
+      lines: block.heading && lines.length ? ['', ...lines] : lines,
+    };
+  });
+
+  // A heading whose section this emptied has nothing left to head — unless what
+  // follows is a deeper heading, which it still shelters.
+  const level = (heading: string | null) => (heading ? /^#+/.exec(heading)![0].length : 0);
+  const surviving = kept.filter((block, index) => {
+    if (block.lines.join('').trim()) return true;
+    if (block.heading === null) return false;
+    const next = kept[index + 1];
+    return next !== undefined && level(next.heading) > level(block.heading);
+  });
+
+  return renderBlocks(surviving);
+}
+
+/**
  * Several builds' notes, read as one release.
  *
  * Sections with the same heading are merged rather than repeated, because a
@@ -186,7 +319,11 @@ export function mergeBodies(bodies: readonly string[]): string {
       }
     });
 
-  return merged
+  return renderBlocks(merged);
+}
+
+function renderBlocks(blocks: readonly Block[]): string {
+  return blocks
     .map((block) => [block.heading, ...block.lines].filter((line) => line !== null).join('\n'))
     .join('\n\n')
     .replace(/[ \t]+$/gm, '')
@@ -357,6 +494,10 @@ export function normaliseBody(body: string | null): string {
     // The compare link GitHub appends. The release is already addressable and
     // the project page already links the repository.
     if (/^\s*\*{0,2}Full Changelog\*{0,2}\s*:/i.test(line)) return null;
+    // A merge commit is not a change, it is how a change arrived — and a
+    // release built from `git log` lists both, so the same work appears twice:
+    // once as what somebody did and once as the branch it came in on.
+    if (/^\s*[-*+]\s+Merge (pull request|branch|remote-tracking branch)\b/i.test(line)) return null;
     // `* Fix the thing by @someone in https://github.com/o/r/pull/12` — the
     // attribution is repository business, and the sentence reads without it.
     return line.replace(/\s+by\s+@[\w-]+\s+in\s+(?:https?:\/\/\S+|#\d+)/gi, '');
@@ -411,6 +552,7 @@ export function deriveHeadline(
   release: GitHubRelease,
   body: string,
   version: string,
+  project: string,
 ): { headline: string; source: HeadlineSource; body: string } {
   const lines = body.split('\n');
   let fenced = false;
@@ -444,7 +586,7 @@ export function deriveHeadline(
   }
 
   const name = release.name?.trim();
-  if (name && name.length <= HEADLINE_MAX && !isVersionLike(name, version)) {
+  if (name && name.length <= HEADLINE_MAX && !isVersionLike(name, version, project)) {
     return { headline: plainText(name), source: 'name', body };
   }
 
@@ -460,10 +602,32 @@ function withoutLine(lines: readonly string[], index: number): string {
     .trim();
 }
 
-/** `v1.7.1`, `1.7.1`, `Release 1.7.1` — the version wearing a hat. */
-function isVersionLike(name: string, version: string): boolean {
-  const bare = name.replace(/^(release|version)\s+/i, '').trim();
-  return bare === version || bare === `v${version}` || /^v?\d+[\d.]*$/i.test(bare);
+/**
+ * `v1.7.1`, `Release 1.7.1`, `Peace 1.11.1 (build 173)` — the version wearing a
+ * hat, which is not a headline however much punctuation it arrives with.
+ *
+ * The project's own name counts as part of the hat: a row on `/changelog`
+ * already carries the project and the version, set beside each other, so a
+ * headline repeating them says nothing the reader cannot see. Better to fall
+ * through to the placeholder, which announces itself as something to write.
+ * `Peace: budgets arrive` still survives — take the name and the version out of
+ * it and there is a sentence left.
+ */
+function isVersionLike(name: string, version: string, project: string): boolean {
+  const words = project.split(/[^a-z0-9]+/i).filter(Boolean);
+  const bare = name
+    // `(build 173)`, `[rc]` — a parenthetical carrying a number is a build tag.
+    .replace(/[([][^)\]]*\d[^)\]]*[)\]]/g, ' ')
+    .replace(new RegExp(`\\b(release|version|v?${escapeRegExp(version)})\\b`, 'gi'), ' ')
+    .replace(new RegExp(`\\b(${words.map(escapeRegExp).join('|')})\\b`, 'gi'), ' ')
+    .replace(/[^a-z0-9]+/gi, ' ')
+    .trim();
+
+  return bare === '' || /^v?[\d.]+$/.test(bare);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**

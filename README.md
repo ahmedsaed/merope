@@ -72,6 +72,11 @@ is the release of it; the builds after it are work done once that version was
 cut, so their notes are folded into the entry the next version opens. Work
 newer than the last bump is held back until the version it ships in exists.
 
+What a project says in every release is dropped rather than repeated down the
+page: a prose paragraph or a `Commit: abc123` field that most of that project's
+releases carry is read as boilerplate, and merge commits go with it. A project
+with one release keeps everything, having nothing to compare it to.
+
 Everything it writes is `draft: true`. The two fields a release payload has no
 answer for are the two that matter most on the page: `headline`, the sentence
 the row is read as, and `breaking`, which is the one thing the grease pencil is

@@ -31,14 +31,17 @@ import matter from 'gray-matter';
 import { format, resolveConfig } from 'prettier';
 import { getProjects, releaseAnchor } from '../src/lib/content/collections';
 import {
+  boilerplateOf,
   dateFromRelease,
   deriveHeadline,
+  dropBoilerplate,
   looksBreaking,
   normaliseBody,
   renderReleaseFile,
   mergeBodies,
   planEntries,
   versionFromTag,
+  type Boilerplate,
   type GitHubRelease,
   type HeadlineSource,
   type PlannedEntry,
@@ -147,16 +150,20 @@ type Written = { path: string; version: string; headline: string; source: Headli
 async function writeRelease(
   project: string,
   entry: PlannedEntry,
+  boilerplate: Boilerplate,
   options: Options,
 ): Promise<Written> {
   const { release, carried } = entry;
   const version = versionFromTag(release.tag_name);
   // The release's own notes, then the notes of every build that went out in
-  // it, read as one body rather than stacked.
-  const notes = mergeBodies([release, ...carried].map((r) => normaliseBody(r.body)));
+  // it, read as one body rather than stacked — each first stripped of whatever
+  // this project says in every release.
+  const notes = mergeBodies(
+    [release, ...carried].map((r) => dropBoilerplate(normaliseBody(r.body), boilerplate)),
+  );
   // The headline may consume the body's opening line, so the body to write is
   // the one that comes back out rather than the one that went in.
-  const { headline, source, body } = deriveHeadline(release, notes, version);
+  const { headline, source, body } = deriveHeadline(release, notes, version, project);
 
   const file = join(CHANGELOG_DIR, `${releaseAnchor({ project, version })}.md`);
   const contents = renderReleaseFile({
@@ -220,8 +227,12 @@ async function main() {
     const published = releases.filter((r) => !r.draft && !r.prerelease);
     const entries = planEntries(project.slug, published, known);
 
+    // Read from every release the project has, including the ones already on
+    // the site: the more of them, the surer the reading of what repeats.
+    const boilerplate = boilerplateOf(published.map((r) => normaliseBody(r.body)));
+
     for (const entry of entries) {
-      written.push(await writeRelease(project.slug, entry, options));
+      written.push(await writeRelease(project.slug, entry, boilerplate, options));
     }
 
     const folded = entries.reduce((n, entry) => n + entry.carried.length, 0);
