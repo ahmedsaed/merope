@@ -64,6 +64,14 @@ compare link and the `by @someone in #12` attributions dropped — and files eac
 one under the anchor the site addresses it by, so re-running it is free and
 cannot overwrite anything.
 
+A project that publishes a release per CI build has one version behind many
+releases: semver says the `+build.173` of `v1.11.1+build.173` is not part of
+the version, so those collapse to one entry, and a version already on the site
+is left alone however its tag was written. The first build carrying a version
+is the release of it; the builds after it are work done once that version was
+cut, so their notes are folded into the entry the next version opens. Work
+newer than the last bump is held back until the version it ships in exists.
+
 Everything it writes is `draft: true`. The two fields a release payload has no
 answer for are the two that matter most on the page: `headline`, the sentence
 the row is read as, and `breaking`, which is the one thing the grease pencil is
