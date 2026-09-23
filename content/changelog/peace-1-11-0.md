@@ -2,7 +2,7 @@
 project: 'peace'
 version: '1.11.0'
 date: 2026-09-22
-headline: 'Version 1.11.0'
+headline: 'Ask what the day cost, and hear what is still waiting.'
 breaking: false
 ---
 

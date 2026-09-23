@@ -2,7 +2,7 @@
 project: 'peace'
 version: '1.8.0'
 date: 2026-09-20
-headline: 'Version 1.8.0'
+headline: 'An archived account can come back.'
 breaking: false
 ---
 

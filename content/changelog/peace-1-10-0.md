@@ -2,7 +2,7 @@
 project: 'peace'
 version: '1.10.0'
 date: 2026-09-21
-headline: 'Version 1.10.0'
+headline: 'One long press, one archive, one way to delete — and a search that keeps your place when a deletion moves you.'
 breaking: false
 ---
 

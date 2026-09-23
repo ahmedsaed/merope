@@ -2,7 +2,7 @@
 project: 'peace'
 version: '1.11.1'
 date: 2026-09-22
-headline: 'Version 1.11.1'
+headline: 'A reminder names your verb, not the model’s.'
 breaking: false
 ---
 

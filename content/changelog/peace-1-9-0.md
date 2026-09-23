@@ -2,7 +2,7 @@
 project: 'peace'
 version: '1.9.0'
 date: 2026-09-20
-headline: 'Version 1.9.0'
+headline: 'Archiving is finished: categories go away and return, an archived account keeps its money, and what is put away can be deleted once nothing points at it.'
 breaking: false
 ---
 
