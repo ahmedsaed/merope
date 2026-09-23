@@ -242,7 +242,12 @@ browser chrome.
   version is the release of it — every hand-written Peace entry is dated to the
   day of the first build tagged with its version — and the builds after it are
   post-release work, so their notes fold into the entry the next version opens
-  rather than being dropped.
+  rather than being dropped. What a project repeats in most of its releases —
+  an install paragraph, a `Commit:` field — is boilerplate and is dropped,
+  read from the project's own releases rather than from a list of templates.
+  A headline that is only the project and the version wearing a hat (`Peace
+1.11.1 (build 173)`) is refused for the same reason the row does not repeat
+  itself: it falls through to the placeholder, which announces itself.
 - **Heading anchors are for documents, not for list entries.** Every release
   body has a section called Added, so slugging them put eight elements called
   `added` on `/changelog` and six § links that scrolled the reader to a
