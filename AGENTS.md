@@ -234,7 +234,11 @@ browser chrome.
   which is what `--mark` exists for. Both are guessed, so every synced file
   lands as `draft: true` and is invisible to `pnpm build` and `check:content`
   until a human has read it. Files are keyed on `releaseAnchor`, never on the
-  filename, so a re-run cannot duplicate or overwrite one.
+  filename, so a re-run cannot duplicate or overwrite one — and the version an
+  anchor is built from drops semver build metadata, because a project that
+  releases every CI build otherwise files each build as a version of its own.
+  Peace's first sync wrote 46 entries for 15 versions, eight of which were
+  already on the site under their real numbers.
 - **Heading anchors are for documents, not for list entries.** Every release
   body has a section called Added, so slugging them put eight elements called
   `added` on `/changelog` and six § links that scrolled the reader to a

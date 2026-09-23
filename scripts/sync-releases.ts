@@ -36,6 +36,7 @@ import {
   looksBreaking,
   normaliseBody,
   renderReleaseFile,
+  selectFresh,
   versionFromTag,
   type GitHubRelease,
   type HeadlineSource,
@@ -211,20 +212,15 @@ async function main() {
     // A draft release is unpublished and a pre-release is not what the
     // catalogue means by shipped.
     const published = releases.filter((r) => !r.draft && !r.prerelease);
-    const fresh = published.filter(
-      (release) =>
-        !known.has(
-          releaseAnchor({ project: project.slug, version: versionFromTag(release.tag_name) }),
-        ),
-    );
+    const fresh = selectFresh(project.slug, published, known);
 
     for (const release of fresh) {
       written.push(await writeRelease(project.slug, release, options));
     }
 
-    const already = published.length - fresh.length;
+    const skipped = published.length - fresh.length;
     console.log(
-      `${project.slug.padEnd(14)} ${fresh.length} new, ${already} already here` +
+      `${project.slug.padEnd(14)} ${fresh.length} new, ${skipped} already here or another build of one` +
         (releases.length > published.length
           ? ` (${releases.length - published.length} draft/pre-release ignored)`
           : ''),

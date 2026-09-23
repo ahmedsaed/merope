@@ -15,6 +15,8 @@
  * does is take the first and leave something the second can use.
  */
 
+import { releaseAnchor } from '../src/lib/content/collections';
+
 /** The fields of the REST release payload this actually reads. */
 export type GitHubRelease = {
   tag_name: string;
@@ -40,16 +42,65 @@ const TOP_LEVEL = 3;
  * convention, and in a monorepo a package name in front of it. Everything up to
  * the last `/` or `@` is that decoration; what follows is the version, which is
  * what `releaseAnchor` builds `#peace-1-7-1` out of and what the row displays.
+ *
+ * Build metadata — the `+build.173` of `v1.11.1+build.173` — goes with it, and
+ * this is the part that is not cosmetic. Semver is explicit that build metadata
+ * is not part of the version and is ignored when comparing two of them, so
+ * `1.11.1+build.173` **is** version 1.11.1. A project that publishes a release
+ * per CI build therefore has one version behind many releases, and keeping the
+ * metadata would file each build as a version of its own: Peace's first sync
+ * wrote 46 entries for 15 versions, eight of which were already on the site
+ * under their real numbers. A changelog reader wants the version. Which build
+ * it came out of is the repository's business.
+ *
+ * A pre-release suffix is left alone — `2.0.0-rc.1` is a different version from
+ * `2.0.0` under the same rule, and shipping it is a different event.
  */
 export function versionFromTag(tag: string): string {
   const afterSlash = tag.trim().split('/').pop() ?? tag;
   const afterAt = afterSlash.includes('@')
     ? afterSlash.slice(afterSlash.lastIndexOf('@') + 1)
     : afterSlash;
-  const version = afterAt.replace(/^v(?=\d)/i, '').trim();
+  const version = afterAt
+    .replace(/^v(?=\d)/i, '')
+    .replace(/\+.*$/, '')
+    .trim();
   // A tag with no version in it at all (`latest`, `nightly`) is still an
   // identity, and a release has to be filed under something.
   return version || tag.trim();
+}
+
+/**
+ * The releases worth writing: the ones no file answers for yet, and one per
+ * version when several releases share one.
+ *
+ * Two releases collapsing onto one anchor is not a hypothetical — it is what
+ * build metadata does, and `known` cannot catch it because both are new. The
+ * newest wins: releases are taken in date order, and the last build of a
+ * version is the one whose notes describe the version as it shipped.
+ */
+export function selectFresh(
+  project: string,
+  releases: readonly GitHubRelease[],
+  known: ReadonlySet<string>,
+): GitHubRelease[] {
+  const seen = new Set(known);
+  const fresh: GitHubRelease[] = [];
+
+  // Sorted here rather than trusted from the API, because which of several
+  // builds is kept depends on it.
+  const newestFirst = [...releases].sort((a, b) =>
+    (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at),
+  );
+
+  for (const release of newestFirst) {
+    const anchor = releaseAnchor({ project, version: versionFromTag(release.tag_name) });
+    if (seen.has(anchor)) continue;
+    seen.add(anchor);
+    fresh.push(release);
+  }
+
+  return fresh;
 }
 
 /** `published_at`, or the creation date for a release that never published. */

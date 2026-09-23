@@ -9,6 +9,7 @@ import {
   looksBreaking,
   normaliseBody,
   renderReleaseFile,
+  selectFresh,
   versionFromTag,
   type GitHubRelease,
 } from '../scripts/release-notes';
@@ -43,6 +44,20 @@ describe('versionFromTag', () => {
     expect(versionFromTag('peace/v1.7.1')).toBe('1.7.1');
     expect(versionFromTag('peace@1.7.1')).toBe('1.7.1');
     expect(versionFromTag('@merope/peace@1.7.1')).toBe('1.7.1');
+  });
+
+  /**
+   * The first real sync found this: Peace publishes a release per CI build, so
+   * 46 releases arrived carrying 15 versions between them, and eight of those
+   * versions were already on the site under their real numbers.
+   */
+  it('drops build metadata, which semver says is not part of the version', () => {
+    expect(versionFromTag('v1.11.1+build.173')).toBe('1.11.1');
+    expect(versionFromTag('v1.0.0+build.30')).toBe('1.0.0');
+  });
+
+  it('keeps a pre-release suffix, which is part of the version', () => {
+    expect(versionFromTag('v2.0.0-rc.1')).toBe('2.0.0-rc.1');
   });
 
   it('keeps a tag that carries no version rather than filing it under nothing', () => {
@@ -230,5 +245,49 @@ describe('renderReleaseFile', () => {
   it('files the release under the anchor the site addresses it by', () => {
     const { data } = matter(renderReleaseFile(file));
     expect(releaseAnchor({ project: data.project, version: data.version })).toBe('peace-1-7-1');
+  });
+});
+
+describe('selectFresh', () => {
+  const build = (n: number, version: string, day: string) =>
+    release({ tag_name: `v${version}+build.${n}`, published_at: `2026-09-${day}T00:00:00Z` });
+
+  it('takes one release per version, keeping the newest build of it', () => {
+    // Newest first, which is the order the API answers in. Two builds can share
+    // a publication day — 103 and 105 both landed on the 13th — and the sort is
+    // stable, so a tie keeps the order GitHub gave, which is still newest
+    // first. What matters is that one release comes back, not three.
+    const fresh = selectFresh(
+      'peace',
+      [build(105, '1.0.0', '13'), build(103, '1.0.0', '13'), build(30, '1.0.0', '10')],
+      new Set(),
+    );
+    expect(fresh).toHaveLength(1);
+    expect(fresh[0].tag_name).toBe('v1.0.0+build.105');
+  });
+
+  it('skips a version a file already answers for, whatever the tag looked like', () => {
+    // `peace-1-7-1.md` was written by hand long before the sync existed; the
+    // release is tagged with a build number. Same version, same anchor.
+    const fresh = selectFresh('peace', [build(149, '1.7.1', '02')], new Set(['peace-1-7-1']));
+    expect(fresh).toEqual([]);
+  });
+
+  it('keeps distinct versions', () => {
+    const fresh = selectFresh(
+      'peace',
+      [build(173, '1.11.1', '22'), build(171, '1.11.0', '20')],
+      new Set(),
+    );
+    expect(fresh.map((r) => versionFromTag(r.tag_name))).toEqual(['1.11.1', '1.11.0']);
+  });
+
+  it('orders by date rather than trusting the order GitHub answered in', () => {
+    const fresh = selectFresh(
+      'peace',
+      [build(30, '1.0.0', '10'), build(103, '1.0.0', '13')],
+      new Set(),
+    );
+    expect(fresh[0].tag_name).toBe('v1.0.0+build.103');
   });
 });
