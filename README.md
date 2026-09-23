@@ -36,7 +36,7 @@ pnpm dev
 | `pnpm shoot / /styleguide` | Screenshot routes in both themes to `.shots/`  |
 | `pnpm check:content`       | Validate frontmatter and cross-references      |
 | `pnpm fetch:field`         | Re-query Gaia for the background star field    |
-| `pnpm sync:releases`       | Draft changelog entries from GitHub releases   |
+| `pnpm sync:releases`       | Write changelog entries from GitHub releases   |
 | `pnpm render:og`           | Regenerate the Open Graph card (needs a build) |
 
 `/styleguide` renders every design token in both themes on one page.
