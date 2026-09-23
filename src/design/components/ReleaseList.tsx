@@ -31,7 +31,8 @@ export type ReleaseEntry = {
   latestAnchor?: string;
   version: string;
   date: Date;
-  headline: string;
+  /** Absent when the release has no sentence of its own. See `content/schema.ts`. */
+  headline?: string;
   /** Needs a human to do something before upgrading. The one thing `--mark` is for. */
   breaking: boolean;
   project?: { name: string; href: string };
@@ -99,7 +100,9 @@ export function ReleaseList({
             </Annotation>
           </div>
 
-          <p className="text-ink-muted mt-3 max-w-(--measure-prose)">{release.headline}</p>
+          {release.headline ? (
+            <p className="text-ink-muted mt-3 max-w-(--measure-prose)">{release.headline}</p>
+          ) : null}
 
           {release.body ? <div className="prose prose-tight mt-5">{release.body}</div> : null}
         </li>

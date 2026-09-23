@@ -524,7 +524,7 @@ function plainText(input: string): string {
 }
 
 /** Where a derived headline came from, so the script can say what to look at. */
-export type HeadlineSource = 'body' | 'name' | 'version';
+export type HeadlineSource = 'body' | 'name' | 'none';
 
 /**
  * The one line that carries a release row.
@@ -541,7 +541,11 @@ export type HeadlineSource = 'body' | 'name' | 'version';
  *    sentence read as a mistake, which is why no hand-written file here opens
  *    that way.
  * 2. The release's name, when it is a title rather than the version again.
- * 3. The version, which is not a headline and is only ever a placeholder.
+ * 3. Nothing. A release whose notes are a template has no sentence summarising
+ *    it, and inventing one from the first bullet would read like a headline and
+ *    be one only by accident. The field is left out, the row is a version, a
+ *    date and its changes, and the run says which entries arrived that way —
+ *    the absence is the honest form of it, and a human writing one is the fix.
  *
  * Notably not on that list: the first bullet of a list of changes. It would
  * read like a headline and be one only by accident — a release of five fixes is
@@ -553,7 +557,7 @@ export function deriveHeadline(
   body: string,
   version: string,
   project: string,
-): { headline: string; source: HeadlineSource; body: string } {
+): { headline: string | null; source: HeadlineSource; body: string } {
   const lines = withoutSelfNaming(body, version, project).split('\n');
   let fenced = false;
 
@@ -591,7 +595,7 @@ export function deriveHeadline(
     return { headline: plainText(name), source: 'name', body: cleaned };
   }
 
-  return { headline: `Version ${version}`, source: 'version', body: cleaned };
+  return { headline: null, source: 'none', body: cleaned };
 }
 
 /**
@@ -640,8 +644,9 @@ function withoutLine(lines: readonly string[], index: number): string {
  *
  * The project's own name counts as part of the hat: a row on `/changelog`
  * already carries the project and the version, set beside each other, so a
- * headline repeating them says nothing the reader cannot see. Better to fall
- * through to the placeholder, which announces itself as something to write.
+ * headline repeating them says nothing the reader cannot see. Better no
+ * headline at all: an empty space is a question, and `Version 1.11.0` under
+ * `v1.11.0` is the same emptiness claiming to be an answer.
  * `Peace: budgets arrive` still survives — take the name and the version out of
  * it and there is a sentence left.
  */
@@ -692,7 +697,8 @@ export type ReleaseFile = {
   version: string;
   /** `YYYY-MM-DD`. Unquoted, as every hand-written file here has it. */
   date: string;
-  headline: string;
+  /** Left out of the file when the release had no sentence to give. */
+  headline: string | null;
   breaking: boolean;
   /** Written only when true; the schema defaults it. */
   draft: boolean;
@@ -705,7 +711,7 @@ export function renderReleaseFile(file: ReleaseFile): string {
     `project: ${yamlString(file.project)}`,
     `version: ${yamlString(file.version)}`,
     `date: ${file.date}`,
-    `headline: ${yamlString(file.headline)}`,
+    ...(file.headline ? [`headline: ${yamlString(file.headline)}`] : []),
     // Always written, unlike `draft`: it is the field a human has to decide,
     // and a key that is present is one they will see.
     `breaking: ${file.breaking}`,

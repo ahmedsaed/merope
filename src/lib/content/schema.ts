@@ -65,8 +65,18 @@ export const releaseSchema = z.object({
   project: z.string().min(1),
   version: z.string().min(1),
   date: isoDate,
-  /** One line summarising the release, for the combined changelog feed. */
-  headline: prose(160),
+  /**
+   * One line summarising the release, for the combined changelog feed.
+   *
+   * Optional, because not every release has one to give. A synced entry takes
+   * its headline from the release notes, and a project whose notes are a
+   * template — install instructions, a commit id, a list of commit subjects —
+   * has no sentence in them that summarises anything. A row without one is a
+   * version, a date and its changes, which is honest; a row carrying `Version
+   * 1.11.0` in the reading face, beside the `v1.11.0` already printed there,
+   * is the same absence pretending to be prose.
+   */
+  headline: prose(160).optional(),
   /** Flags a release that needs a human to do something before upgrading. */
   breaking: z.boolean().default(false),
   draft: z.boolean().default(false),
