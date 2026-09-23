@@ -3,9 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { releaseSchema } from '@/lib/content/schema';
 import { releaseAnchor } from '@/lib/content/collections';
 import {
+  boilerplateOf,
   dateFromRelease,
   demoteHeadings,
   deriveHeadline,
+  dropBoilerplate,
   looksBreaking,
   normaliseBody,
   renderReleaseFile,
@@ -101,6 +103,16 @@ describe('normaliseBody', () => {
     expect(normaliseBody('<!-- generated -->\nReal prose.')).toBe('Real prose.');
   });
 
+  it('drops merge commits, which are how a change arrived rather than a change', () => {
+    const body = [
+      '### Changes',
+      '- Merge pull request #50 from ahmedsaed/claude/reminder-approve-wording',
+      '- Merge branch `main` into feat/x',
+      '- fix: name the person’s verb, not the model’s',
+    ].join('\n');
+    expect(normaliseBody(body)).toBe('### Changes\n- fix: name the person’s verb, not the model’s');
+  });
+
   it('drops the compare link and the pull request attributions', () => {
     const body = [
       "## What's Changed",
@@ -129,7 +141,7 @@ describe('normaliseBody', () => {
 describe('deriveHeadline', () => {
   it('takes an opening line of prose, which is what a written note starts with', () => {
     const body = 'The Now card explains itself.\n\n### Added\n- a thing';
-    expect(deriveHeadline(release(), body, '1.7.1')).toEqual({
+    expect(deriveHeadline(release(), body, '1.7.1', 'peace')).toEqual({
       headline: 'The Now card explains itself.',
       source: 'body',
       // Spent: a row whose headline and whose first line of body are the same
@@ -140,30 +152,34 @@ describe('deriveHeadline', () => {
 
   it('takes the first sentence, because a paragraph can outrun the 160 the schema allows', () => {
     const body = `${'A sentence that is quite long. '.repeat(10)}`;
-    const { headline } = deriveHeadline(release(), body, '1.7.1');
+    const { headline } = deriveHeadline(release(), body, '1.7.1', 'peace');
     expect(headline).toBe('A sentence that is quite long.');
   });
 
   it('keeps a paragraph it only took one sentence from', () => {
     const body = 'It arrived. And then some more detail nobody should lose.';
-    const { headline, body: kept } = deriveHeadline(release(), body, '1.7.1');
+    const { headline, body: kept } = deriveHeadline(release(), body, '1.7.1', 'peace');
     expect(headline).toBe('It arrived.');
     expect(kept).toBe(body);
   });
 
   it('reads through markdown to the sentence underneath', () => {
     const body = 'The **Now** card [explains](https://merope.dev) itself.';
-    expect(deriveHeadline(release(), body, '1.7.1').headline).toBe('The Now card explains itself.');
+    expect(deriveHeadline(release(), body, '1.7.1', 'peace').headline).toBe(
+      'The Now card explains itself.',
+    );
   });
 
   it('leaves the body alone when the headline came from somewhere else', () => {
     const body = '### Added\n- a thing';
-    expect(deriveHeadline(release({ name: 'A title' }), body, '1.7.1').body).toBe(body);
+    expect(deriveHeadline(release({ name: 'A title' }), body, '1.7.1', 'peace').body).toBe(body);
   });
 
   it('ignores headings, lists and fenced code when looking for a sentence', () => {
     const body = '### Added\n- a thing\n\n```ts\nconst x = 1;\n```';
-    expect(deriveHeadline(release({ name: 'Quieter notifications' }), body, '1.7.1')).toEqual({
+    expect(
+      deriveHeadline(release({ name: 'Quieter notifications' }), body, '1.7.1', 'peace'),
+    ).toEqual({
       headline: 'Quieter notifications',
       source: 'name',
       body,
@@ -171,8 +187,19 @@ describe('deriveHeadline', () => {
   });
 
   it('refuses a name that is only the version wearing a hat', () => {
-    for (const name of ['v1.7.1', '1.7.1', 'Release 1.7.1']) {
-      expect(deriveHeadline(release({ name }), '', '1.7.1')).toEqual({
+    // `Peace 1.11.1 (build 173)` is the shape Peace's releases actually carry:
+    // the row already prints the project and the version side by side, so a
+    // headline repeating them says nothing the reader cannot see. Better the
+    // placeholder, which announces itself as something to write.
+    for (const name of [
+      'v1.7.1',
+      '1.7.1',
+      'Release 1.7.1',
+      'Peace 1.7.1',
+      'Peace 1.7.1 (build 149)',
+      'peace v1.7.1 [173]',
+    ]) {
+      expect(deriveHeadline(release({ name }), '', '1.7.1', 'peace')).toEqual({
         headline: 'Version 1.7.1',
         source: 'version',
         body: '',
@@ -180,9 +207,16 @@ describe('deriveHeadline', () => {
     }
   });
 
+  it('keeps a name that still says something once the version is taken out', () => {
+    const named = (name: string) =>
+      deriveHeadline(release({ name }), '', '1.7.1', 'peace').headline;
+    expect(named('Peace: budgets arrive')).toBe('Peace: budgets arrive');
+    expect(named('Quieter notifications')).toBe('Quieter notifications');
+  });
+
   it('never returns more than the schema will accept', () => {
     const body = `${'word '.repeat(200)}`;
-    const { headline, source } = deriveHeadline(release({ name: null }), body, '1.7.1');
+    const { headline, source } = deriveHeadline(release({ name: null }), body, '1.7.1', 'peace');
     expect(headline.length).toBeLessThanOrEqual(160);
     // Nothing usable in either place: a placeholder, flagged as one.
     expect(source).toBe('version');
@@ -373,5 +407,59 @@ describe('mergeBodies', () => {
 
   it('is empty for nothing at all', () => {
     expect(mergeBodies(['', ''])).toBe('');
+  });
+});
+
+describe('boilerplate', () => {
+  // What Peace says in all 46 of its releases, and the two lines that differ.
+  const install = 'Install the APK below. It is signed with the release key.';
+  const peace = (commit: string, code: number, changes: string) =>
+    `${install}\n\nCommit: \`${commit}\`\nAndroid versionCode: \`${code}\`\n\n### Changes\n\n- ${changes}`;
+
+  const bodies = [
+    peace('aaa', 173, 'newer'),
+    peace('bbb', 171, 'older'),
+    peace('ccc', 169, 'oldest'),
+  ];
+
+  it('reads what most releases repeat, and what varies behind a label', () => {
+    const found = boilerplateOf(bodies);
+    expect([...found.paragraphs]).toEqual([install]);
+    expect([...found.labels].sort()).toEqual(['Android versionCode', 'Commit']);
+  });
+
+  it('leaves a release with nothing but its changes', () => {
+    expect(dropBoilerplate(bodies[0], boilerplateOf(bodies))).toBe('### Changes\n\n- newer');
+  });
+
+  it('drops nothing from a project with one release, having nothing to compare', () => {
+    const one = [peace('aaa', 173, 'newer')];
+    expect(dropBoilerplate(one[0], boilerplateOf(one))).toBe(one[0]);
+  });
+
+  it('keeps a paragraph a minority of releases share, which somebody meant twice', () => {
+    const note = 'This release needs a migration.';
+    const shared = [
+      `${note}\n\n### Changes\n\n- a`,
+      `${note}\n\n### Changes\n\n- b`,
+      '### Changes\n\n- c',
+      '### Changes\n\n- d',
+    ];
+    expect(dropBoilerplate(shared[0], boilerplateOf(shared))).toContain(note);
+  });
+
+  it('never drops a repeated list item, which may be a change made twice', () => {
+    const repeated = ['### Fixed\n\n- the same typo', '### Fixed\n\n- the same typo'];
+    expect(dropBoilerplate(repeated[0], boilerplateOf(repeated))).toBe(
+      '### Fixed\n\n- the same typo',
+    );
+  });
+
+  it('takes the heading with the section when nothing is left under it', () => {
+    const bodies = [
+      '### Build\n\nCommit: `aaa`\n\n### Changes\n\n- a',
+      '### Build\n\nCommit: `bbb`\n\n### Changes\n\n- b',
+    ];
+    expect(dropBoilerplate(bodies[0], boilerplateOf(bodies))).toBe('### Changes\n\n- a');
   });
 });
