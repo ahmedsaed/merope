@@ -232,10 +232,11 @@ browser chrome.
   draft.** A GitHub release carries the version, the date and the notes; it
   does not carry the `headline` — the sentence a row on `/changelog` is read as
   — or `breaking`, which is what `--mark` exists for. Both are guessed, and a
-  headline it could not find at all arrives as `Version 1.11.1`, marked `!` in
-  the run output and listed as an unticked box in the pull request. Nothing
-  downstream will stop that reaching the site: the review is the preview deploy
-  and the merge, not a flag. `--draft` writes `draft: true` for a local run you
+  headline it could not find at all is left out — `headline` is optional in
+  `content/schema.ts` for this reason, and a row without one is a version, a
+  date and its changes. The entry is marked `!` in the run output and listed as
+  an unticked box in the pull request, which is the only place that absence is
+  stated: the review is the preview deploy and the merge, not a flag. `--draft` writes `draft: true` for a local run you
   do not intend to publish.
 - **The sync's own workflow builds the site before opening its pull request.**
   A pull request opened with the default `GITHUB_TOKEN` does not start the
@@ -256,8 +257,9 @@ browser chrome.
   paragraph, a `Commit:` field — is boilerplate and is dropped, read from the
   project's own releases rather than from a list of templates. A headline that
   is only the project and the version wearing a hat (`Peace 1.11.1 (build
-173)`) is refused wherever it came from, the notes included: it falls through
-  to the placeholder, which announces itself.
+173)`) is refused wherever it came from, the notes included: the row
+  already prints both, and an entry with no headline is the honest form of
+  having nothing to say about a release.
 - **Heading anchors are for documents, not for list entries.** Every release
   body has a section called Added, so slugging them put eight elements called
   `added` on `/changelog` and six § links that scrolled the reader to a

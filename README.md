@@ -80,7 +80,9 @@ with one release keeps everything, having nothing to compare it to.
 The two fields a release payload has no answer for are the two that matter most
 on the page: `headline`, the sentence the row is read as, and `breaking`, which
 is the one thing the grease pencil is for. A headline it could not find at all
-arrives as `Version 1.11.1` and is marked `!` in the output.
+is left out rather than invented — the row then carries a version, a date and
+its changes — and the entry is marked `!` in the output and listed in the pull
+request.
 
 Entries are written live rather than as drafts, because the review happens
 somewhere better than a flag: the workflow opens a pull request, the whole site

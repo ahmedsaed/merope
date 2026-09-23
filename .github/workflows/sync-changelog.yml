@@ -150,12 +150,13 @@ jobs:
             echo 'These are live, not drafts: the preview on this pull request is the'
             echo 'draft, and merging publishes them as they are.'
             # The `!` lines are the entries whose headline the conversion could
-            # not find at all. Nothing downstream will stop `Version 1.11.1`
-            # reaching the site, so this is where it has to be unmissable.
+            # not find at all, and which therefore carry none: the row prints a
+            # version, a date and its changes, and nothing else says so. This
+            # list is the only place it is stated, so it has to be unmissable.
             if sed -n '/^!/p' "$RUNNER_TEMP/sync.log" | grep -q .; then
               echo
-              echo '**These have no headline yet** — they say `Version x.y.z`, which is'
-              echo 'what the row already prints beside them:'
+              echo '**These have no headline** — their release notes had no sentence to'
+              echo 'take one from, so their rows carry only a version, a date and a list:'
               echo
               sed -n 's|^!  *\([^ ]*\) .*|- [ ] `\1`|p' "$RUNNER_TEMP/sync.log"
             fi
