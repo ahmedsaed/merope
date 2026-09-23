@@ -9,7 +9,8 @@ import {
   looksBreaking,
   normaliseBody,
   renderReleaseFile,
-  selectFresh,
+  mergeBodies,
+  planEntries,
   versionFromTag,
   type GitHubRelease,
 } from '../scripts/release-notes';
@@ -248,46 +249,129 @@ describe('renderReleaseFile', () => {
   });
 });
 
-describe('selectFresh', () => {
+describe('planEntries', () => {
   const build = (n: number, version: string, day: string) =>
     release({ tag_name: `v${version}+build.${n}`, published_at: `2026-09-${day}T00:00:00Z` });
 
-  it('takes one release per version, keeping the newest build of it', () => {
-    // Newest first, which is the order the API answers in. Two builds can share
-    // a publication day — 103 and 105 both landed on the 13th — and the sort is
-    // stable, so a tie keeps the order GitHub gave, which is still newest
-    // first. What matters is that one release comes back, not three.
-    const fresh = selectFresh(
+  /**
+   * Peace bumps the version when it cuts a release, so the first build carrying
+   * a version is that release — every hand-written entry on the site is dated
+   * to the day of the first build tagged with its version. The builds after it
+   * still say the old version while the work in them is heading for the next.
+   */
+  it('opens an entry on the first build of a version', () => {
+    const entries = planEntries(
       'peace',
-      [build(105, '1.0.0', '13'), build(103, '1.0.0', '13'), build(30, '1.0.0', '10')],
+      [build(30, '1.0.0', '10'), build(32, '1.0.0', '11'), build(110, '1.1.0', '13')],
       new Set(),
     );
-    expect(fresh).toHaveLength(1);
-    expect(fresh[0].tag_name).toBe('v1.0.0+build.105');
+    expect(entries.map((e) => versionFromTag(e.release.tag_name))).toEqual(['1.1.0', '1.0.0']);
   });
 
-  it('skips a version a file already answers for, whatever the tag looked like', () => {
-    // `peace-1-7-1.md` was written by hand long before the sync existed; the
-    // release is tagged with a build number. Same version, same anchor.
-    const fresh = selectFresh('peace', [build(149, '1.7.1', '02')], new Set(['peace-1-7-1']));
-    expect(fresh).toEqual([]);
-  });
-
-  it('keeps distinct versions', () => {
-    const fresh = selectFresh(
+  it('carries a later build of a version into the entry the next one opens', () => {
+    const entries = planEntries(
       'peace',
-      [build(173, '1.11.1', '22'), build(171, '1.11.0', '20')],
+      [build(30, '1.0.0', '10'), build(32, '1.0.0', '11'), build(110, '1.1.0', '13')],
       new Set(),
     );
-    expect(fresh.map((r) => versionFromTag(r.tag_name))).toEqual(['1.11.1', '1.11.0']);
+    const [next, first] = entries;
+    expect(next.carried.map((r) => r.tag_name)).toEqual(['v1.0.0+build.32']);
+    // The build that named the version has nothing before it to carry.
+    expect(first.carried).toEqual([]);
   });
 
-  it('orders by date rather than trusting the order GitHub answered in', () => {
-    const fresh = selectFresh(
+  it('holds back work that has not reached a version yet', () => {
+    // Build 174 is newer than every bump, so no released version contains it.
+    // Inventing one would date a release that has not happened; the next sync
+    // sees it again, by then followed by the version it shipped in.
+    const entries = planEntries(
       'peace',
-      [build(30, '1.0.0', '10'), build(103, '1.0.0', '13')],
+      [build(173, '1.11.1', '22'), build(174, '1.11.1', '23')],
       new Set(),
     );
-    expect(fresh[0].tag_name).toBe('v1.0.0+build.103');
+    expect(entries).toHaveLength(1);
+    expect(entries[0].carried).toEqual([]);
+  });
+
+  it('skips a version already on disk, and its carried builds with it', () => {
+    // `peace-1-1-0.md` was written by hand. The work in build 32 is described
+    // there already, by somebody who knew what it was.
+    const entries = planEntries(
+      'peace',
+      [build(30, '1.0.0', '10'), build(32, '1.0.0', '11'), build(110, '1.1.0', '13')],
+      new Set(['peace-1-1-0']),
+    );
+    expect(entries.map((e) => versionFromTag(e.release.tag_name))).toEqual(['1.0.0']);
+  });
+
+  it('reads the boundary from the build order, not from the order GitHub answered in', () => {
+    const entries = planEntries(
+      'peace',
+      [build(110, '1.1.0', '13'), build(32, '1.0.0', '11'), build(30, '1.0.0', '10')],
+      new Set(),
+    );
+    expect(entries.map((e) => versionFromTag(e.release.tag_name))).toEqual(['1.1.0', '1.0.0']);
+    expect(entries[0].carried.map((r) => r.tag_name)).toEqual(['v1.0.0+build.32']);
+  });
+
+  it('returns entries newest first, as the changelog reads', () => {
+    const entries = planEntries(
+      'peace',
+      [build(30, '1.0.0', '10'), build(110, '1.1.0', '13'), build(117, '1.2.0', '14')],
+      new Set(),
+    );
+    expect(entries.map((e) => versionFromTag(e.release.tag_name))).toEqual([
+      '1.2.0',
+      '1.1.0',
+      '1.0.0',
+    ]);
+  });
+});
+
+describe('mergeBodies', () => {
+  it('merges sections that share a heading rather than repeating them', () => {
+    const merged = mergeBodies(['### Changes\n\n- newer', '### Changes\n\n- older']);
+    expect(merged).toBe('### Changes\n\n- newer\n- older');
+  });
+
+  it('keeps only the first preamble, which on a build release describes the build', () => {
+    const shipped = 'Install the APK below.\n\nCommit: `aaa`\n\n### Changes\n\n- newer';
+    const earlier = 'Install the APK below.\n\nCommit: `bbb`\n\n### Changes\n\n- older';
+    const merged = mergeBodies([shipped, earlier]);
+    expect(merged).toContain('Commit: `aaa`');
+    expect(merged).not.toContain('Commit: `bbb`');
+    expect(merged).toBe(
+      'Install the APK below.\n\nCommit: `aaa`\n\n### Changes\n\n- newer\n- older',
+    );
+  });
+
+  it('keeps a body that is nothing but prose, which has no section to merge', () => {
+    const merged = mergeBodies([
+      '### Changes\n\n- newer',
+      'A whole release note with no headings.',
+    ]);
+    expect(merged).toContain('A whole release note with no headings.');
+  });
+
+  it('counts a change that appeared in two builds once', () => {
+    const merged = mergeBodies([
+      '### Changes\n\n- same\n- newer',
+      '### Changes\n\n- same\n- older',
+    ]);
+    expect(merged).toBe('### Changes\n\n- same\n- newer\n- older');
+  });
+
+  it('keeps a section the release itself does not have', () => {
+    const merged = mergeBodies(['### Changes\n\n- newer', '### Fixed\n\n- older']);
+    expect(merged).toBe('### Changes\n\n- newer\n\n### Fixed\n\n- older');
+  });
+
+  it('does not read a heading inside a code fence', () => {
+    const body = '### Changes\n\n```md\n### Changes\n```';
+    expect(mergeBodies([body])).toBe(body);
+  });
+
+  it('is empty for nothing at all', () => {
+    expect(mergeBodies(['', ''])).toBe('');
   });
 });

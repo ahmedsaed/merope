@@ -238,7 +238,11 @@ browser chrome.
   anchor is built from drops semver build metadata, because a project that
   releases every CI build otherwise files each build as a version of its own.
   Peace's first sync wrote 46 entries for 15 versions, eight of which were
-  already on the site under their real numbers.
+  already on the site under their real numbers. The first build carrying a
+  version is the release of it — every hand-written Peace entry is dated to the
+  day of the first build tagged with its version — and the builds after it are
+  post-release work, so their notes fold into the entry the next version opens
+  rather than being dropped.
 - **Heading anchors are for documents, not for list entries.** Every release
   body has a section called Added, so slugging them put eight elements called
   `added` on `/changelog` and six § links that scrolled the reader to a

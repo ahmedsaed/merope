@@ -36,10 +36,12 @@ import {
   looksBreaking,
   normaliseBody,
   renderReleaseFile,
-  selectFresh,
+  mergeBodies,
+  planEntries,
   versionFromTag,
   type GitHubRelease,
   type HeadlineSource,
+  type PlannedEntry,
 } from './release-notes';
 
 const CHANGELOG_DIR = join(process.cwd(), 'content/changelog');
@@ -144,13 +146,17 @@ type Written = { path: string; version: string; headline: string; source: Headli
 
 async function writeRelease(
   project: string,
-  release: GitHubRelease,
+  entry: PlannedEntry,
   options: Options,
 ): Promise<Written> {
+  const { release, carried } = entry;
   const version = versionFromTag(release.tag_name);
+  // The release's own notes, then the notes of every build that went out in
+  // it, read as one body rather than stacked.
+  const notes = mergeBodies([release, ...carried].map((r) => normaliseBody(r.body)));
   // The headline may consume the body's opening line, so the body to write is
   // the one that comes back out rather than the one that went in.
-  const { headline, source, body } = deriveHeadline(release, normaliseBody(release.body), version);
+  const { headline, source, body } = deriveHeadline(release, notes, version);
 
   const file = join(CHANGELOG_DIR, `${releaseAnchor({ project, version })}.md`);
   const contents = renderReleaseFile({
@@ -212,15 +218,17 @@ async function main() {
     // A draft release is unpublished and a pre-release is not what the
     // catalogue means by shipped.
     const published = releases.filter((r) => !r.draft && !r.prerelease);
-    const fresh = selectFresh(project.slug, published, known);
+    const entries = planEntries(project.slug, published, known);
 
-    for (const release of fresh) {
-      written.push(await writeRelease(project.slug, release, options));
+    for (const entry of entries) {
+      written.push(await writeRelease(project.slug, entry, options));
     }
 
-    const skipped = published.length - fresh.length;
+    const folded = entries.reduce((n, entry) => n + entry.carried.length, 0);
     console.log(
-      `${project.slug.padEnd(14)} ${fresh.length} new, ${skipped} already here or another build of one` +
+      `${project.slug.padEnd(14)} ${entries.length} new` +
+        (folded ? `, ${folded} later build(s) folded in` : '') +
+        `, ${published.length - entries.length - folded} already here` +
         (releases.length > published.length
           ? ` (${releases.length - published.length} draft/pre-release ignored)`
           : ''),

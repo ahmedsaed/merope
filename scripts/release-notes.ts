@@ -70,37 +70,180 @@ export function versionFromTag(tag: string): string {
   return version || tag.trim();
 }
 
+/** One changelog entry, and the builds whose work it shipped. */
+export type PlannedEntry = {
+  /** The build that named the version. It dates the entry and leads its body. */
+  release: GitHubRelease;
+  /**
+   * Later builds of the *previous* version, newest first: work done after that
+   * version was cut, which therefore went out in this one.
+   */
+  carried: GitHubRelease[];
+};
+
 /**
- * The releases worth writing: the ones no file answers for yet, and one per
- * version when several releases share one.
+ * Which releases become entries, and which fold into one.
  *
- * Two releases collapsing onto one anchor is not a hypothetical — it is what
- * build metadata does, and `known` cannot catch it because both are new. The
- * newest wins: releases are taken in date order, and the last build of a
- * version is the one whose notes describe the version as it shipped.
+ * A project that publishes a release per CI build does not publish one release
+ * per version, and the two are not the same shape. Peace bumps the version when
+ * it cuts a release, so the first build carrying a version *is* that release —
+ * every hand-written entry on the site is dated to the day of the first build
+ * tagged with its version, all nine of them. Every build after that still says
+ * the old version while the work in it is heading for the next one.
+ *
+ * So the first build of a version opens an entry, and the builds that follow it
+ * are carried forward into the entry the next version opens. Work that has not
+ * reached a version yet — builds after the newest bump — is held back rather
+ * than invented into a release: the next sync sees it again, by then followed
+ * by the version it shipped in.
+ *
+ * A version already answered for on disk takes its carried builds with it. The
+ * entry exists, somebody wrote it, and this has nothing to add to it.
  */
-export function selectFresh(
+export function planEntries(
   project: string,
   releases: readonly GitHubRelease[],
   known: ReadonlySet<string>,
-): GitHubRelease[] {
-  const seen = new Set(known);
-  const fresh: GitHubRelease[] = [];
-
-  // Sorted here rather than trusted from the API, because which of several
-  // builds is kept depends on it.
-  const newestFirst = [...releases].sort((a, b) =>
-    (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at),
+): PlannedEntry[] {
+  // Oldest first: a version boundary only means anything in the order the
+  // builds actually happened. Sorted here rather than trusted from the API.
+  const oldestFirst = [...releases].sort((a, b) =>
+    (a.published_at ?? a.created_at).localeCompare(b.published_at ?? b.created_at),
   );
 
-  for (const release of newestFirst) {
-    const anchor = releaseAnchor({ project, version: versionFromTag(release.tag_name) });
-    if (seen.has(anchor)) continue;
-    seen.add(anchor);
-    fresh.push(release);
+  const entries: PlannedEntry[] = [];
+  const opened = new Set<string>();
+  let carry: GitHubRelease[] = [];
+  let current: string | null = null;
+
+  for (const release of oldestFirst) {
+    const version = versionFromTag(release.tag_name);
+    if (version === current) {
+      carry.push(release);
+      continue;
+    }
+    current = version;
+    // A version bumped, abandoned and bumped again would open twice and
+    // resolve to one anchor; the first time it was cut is the one that counts.
+    if (opened.has(version)) continue;
+    opened.add(version);
+    // Newest first, to read with the release's own notes at the top.
+    entries.push({ release, carried: carry.reverse() });
+    carry = [];
   }
 
-  return fresh;
+  return entries
+    .filter(
+      (entry) =>
+        !known.has(releaseAnchor({ project, version: versionFromTag(entry.release.tag_name) })),
+    )
+    .reverse();
+}
+
+/**
+ * Several builds' notes, read as one release.
+ *
+ * Sections with the same heading are merged rather than repeated, because a
+ * body carrying `### Changes` four times is not collapsed, it is stacked. Only
+ * the first body's preamble is kept: on a build release that is the install
+ * instructions and the commit id, which describe the build rather than the
+ * release. A body with no headings at all has nothing but a preamble, so it is
+ * kept whole — dropping it would lose the only thing it said.
+ */
+export function mergeBodies(bodies: readonly string[]): string {
+  const merged: Block[] = [];
+  const byHeading = new Map<string, Block>();
+  const key = (heading: string) =>
+    heading
+      .replace(/^#+\s*/, '')
+      .trim()
+      .toLowerCase();
+
+  bodies
+    .filter((body) => body.trim())
+    .forEach((body, index) => {
+      const parsed = blocks(body);
+      const headed = parsed.some((block) => block.heading !== null);
+
+      for (const block of parsed) {
+        if (block.heading === null) {
+          if (index === 0 || !headed) merged.push(block);
+          continue;
+        }
+
+        const existing = byHeading.get(key(block.heading));
+        if (!existing) {
+          byHeading.set(key(block.heading), block);
+          merged.push(block);
+          continue;
+        }
+        // A commit that appeared in two builds is one change, not two.
+        const seen = new Set(existing.lines.map((line) => line.trim()).filter(Boolean));
+        const addition = trimBlankEdges(block.lines).filter(
+          (line) => !line.trim() || !seen.has(line.trim()),
+        );
+        if (addition.length) appendTo(existing, addition);
+      }
+    });
+
+  return merged
+    .map((block) => [block.heading, ...block.lines].filter((line) => line !== null).join('\n'))
+    .join('\n\n')
+    .replace(/[ \t]+$/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/** A run of markdown under one heading, or the text before the first one. */
+type Block = { heading: string | null; lines: string[] };
+
+function trimBlankEdges(lines: readonly string[]): string[] {
+  const out = [...lines];
+  while (out.length && !out[0].trim()) out.shift();
+  while (out.length && !out[out.length - 1].trim()) out.pop();
+  return out;
+}
+
+/**
+ * Joins one section's content onto another's.
+ *
+ * Two lists become one list, with no blank line to break the run — which is the
+ * whole point of merging them. Anything else keeps the blank line, because two
+ * paragraphs run together read as one.
+ */
+function appendTo(block: Block, addition: readonly string[]): void {
+  const tail = block.lines.filter((line) => line.trim()).pop() ?? '';
+  const head = addition.find((line) => line.trim()) ?? '';
+  const list = /^\s*([-*+]|\d+\.)\s/;
+
+  while (block.lines.length && !block.lines[block.lines.length - 1].trim()) block.lines.pop();
+  if (!(list.test(tail) && list.test(head))) block.lines.push('');
+  block.lines.push(...addition);
+}
+
+function blocks(body: string): Block[] {
+  const out: Block[] = [];
+  let current: Block = { heading: null, lines: [] };
+  let fence: string | null = null;
+
+  for (const line of body.split('\n')) {
+    const marker = /^\s*(```+|~~~+)/.exec(line);
+    if (marker) {
+      if (fence === null) fence = marker[1][0];
+      else if (marker[1][0] === fence) fence = null;
+      current.lines.push(line);
+      continue;
+    }
+    if (fence === null && /^#{1,6}\s/.test(line)) {
+      out.push(current);
+      current = { heading: line.trim(), lines: [] };
+      continue;
+    }
+    current.lines.push(line);
+  }
+  out.push(current);
+
+  return out.filter((block) => block.heading !== null || block.lines.join('').trim() !== '');
 }
 
 /** `published_at`, or the creation date for a release that never published. */
