@@ -207,6 +207,26 @@ describe('deriveHeadline', () => {
     }
   });
 
+  /**
+   * What Peace's notes actually do, and the reason the check cannot live on the
+   * release name alone: the body opens by naming the release, so the body tier
+   * took that line, consumed it, and produced a headline repeating the two
+   * things the row already prints beside it.
+   */
+  it('refuses a body that opens by naming the release, and drops the line', () => {
+    const body = 'Peace 1.7.1 (build 149)\n\n### Changes\n\n- fix: a real change';
+    expect(deriveHeadline(release({ name: null }), body, '1.7.1', 'peace')).toEqual({
+      headline: 'Version 1.7.1',
+      source: 'version',
+      body: '### Changes\n\n- fix: a real change',
+    });
+  });
+
+  it('leaves a heading or a list item that names the release, which somebody chose', () => {
+    const body = '## Peace 1.7.1\n\n- 1.7.1';
+    expect(deriveHeadline(release({ name: null }), body, '1.7.1', 'peace').body).toBe(body);
+  });
+
   it('keeps a name that still says something once the version is taken out', () => {
     const named = (name: string) =>
       deriveHeadline(release({ name }), '', '1.7.1', 'peace').headline;
