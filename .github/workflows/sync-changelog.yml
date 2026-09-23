@@ -1,9 +1,21 @@
 name: Sync changelog
 
-# Manual only, from the Actions tab. Releases are not frequent enough to be
-# worth polling for, and a run that opens a pull request is something somebody
-# should be ready to read.
+# Weekly, and on demand from the Actions tab.
+#
+# The weekly run is the reminder: a studio ships when it ships, and the moment
+# to notice a release went out is not the moment somebody happens to think of
+# it. A run that finds nothing new opens nothing and says nothing — the pull
+# request only appears when there is something to read, which is what makes it
+# worth reading.
+#
+# Monday morning, at a minute nobody else picked: GitHub runs everything
+# scheduled for the top of an hour at the top of that hour, and a queue is a
+# queue. Note that GitHub disables a scheduled workflow in a repository with no
+# activity for 60 days, and says so by email — a quiet studio is exactly the
+# case this exists for, so it is worth re-enabling rather than wondering.
 on:
+  schedule:
+    - cron: '17 8 * * 1'
   workflow_dispatch:
     inputs:
       project:
@@ -83,7 +95,9 @@ jobs:
           # see it: add one as a RELEASES_TOKEN secret with `repo` scope.
           GITHUB_TOKEN: ${{ secrets.RELEASES_TOKEN || secrets.GITHUB_TOKEN }}
           # Read as data rather than interpolated into the script, so a slug
-          # typed in the Actions tab cannot become shell.
+          # typed in the Actions tab cannot become shell. On the weekly run
+          # there are no inputs at all and both arrive empty, which is the same
+          # as the defaults: every project, written live.
           PROJECT: ${{ inputs.project }}
           DRAFT: ${{ inputs.draft }}
         run: |
@@ -105,6 +119,11 @@ jobs:
         id: changed
         run: |
           set -eo pipefail
+          # Every step after this one is conditional on it. A week with no
+          # releases ends here: nothing is committed, nothing is pushed, and no
+          # pull request is opened or updated. A green tick in the Actions tab
+          # is the whole report, which is the point — a weekly pull request
+          # saying "no change" is a weekly pull request nobody opens.
           if [ -z "$(git status --porcelain content/changelog)" ]; then
             echo 'No releases that are not already here.' >> "$GITHUB_STEP_SUMMARY"
             echo 'any=false' >> "$GITHUB_OUTPUT"

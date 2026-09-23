@@ -36,7 +36,7 @@ pnpm dev
 | `pnpm shoot / /styleguide` | Screenshot routes in both themes to `.shots/`  |
 | `pnpm check:content`       | Validate frontmatter and cross-references      |
 | `pnpm fetch:field`         | Re-query Gaia for the background star field    |
-| `pnpm sync:releases`       | Draft changelog entries from GitHub releases   |
+| `pnpm sync:releases`       | Write changelog entries from GitHub releases   |
 | `pnpm render:og`           | Regenerate the Open Graph card (needs a build) |
 
 `/styleguide` renders every design token in both themes on one page.
@@ -96,11 +96,14 @@ pnpm sync:releases peace --dry-run # one of them, printed rather than written
 pnpm sync:releases --draft         # as drafts, invisible to a build
 ```
 
-The same thing runs from GitHub: **Actions → Sync changelog → Run workflow**,
-which syncs, builds the site to prove the entries survive it, and opens a pull
-request on `sync/changelog` for you to read on the preview and merge. A run with nothing new ends
-without opening anything, and a run while that pull request is still open adds
-to it rather than raising a second one.
+The same thing runs from GitHub **every Monday morning**, and on demand from
+**Actions → Sync changelog → Run workflow**. It syncs, builds the site to prove
+the entries survive it, and opens a pull request on `sync/changelog` for you to
+read on the preview and merge.
+
+A week with nothing new opens nothing and says nothing — the pull request is the
+notification, and it only appears when there is something to read. A run while
+one is still open adds to it rather than raising a second.
 
 It needs _Allow GitHub Actions to create and approve pull requests_
 (Settings → Actions → General). A project whose repository is private also
