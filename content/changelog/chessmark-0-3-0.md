@@ -4,7 +4,6 @@ version: '0.3.0'
 date: 2026-09-15
 headline: 'Twenty-nine commits since v0.2.0.'
 breaking: false
-draft: true
 ---
 
 Twenty-nine commits since `v0.2.0`. **Chessmark is in beta** — that is what `0.x` means under SemVer: anything may change, and the public API should not yet be considered stable.

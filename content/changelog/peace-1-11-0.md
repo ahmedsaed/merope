@@ -4,7 +4,6 @@ version: '1.11.0'
 date: 2026-09-22
 headline: 'Version 1.11.0'
 breaking: false
-draft: true
 ---
 
 ### Changes
