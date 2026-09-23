@@ -36,6 +36,7 @@ pnpm dev
 | `pnpm shoot / /styleguide` | Screenshot routes in both themes to `.shots/`  |
 | `pnpm check:content`       | Validate frontmatter and cross-references      |
 | `pnpm fetch:field`         | Re-query Gaia for the background star field    |
+| `pnpm sync:releases`       | Draft changelog entries from GitHub releases   |
 | `pnpm render:og`           | Regenerate the Open Graph card (needs a build) |
 
 `/styleguide` renders every design token in both themes on one page.
@@ -53,6 +54,36 @@ content/projects/<slug>.md       A project in the catalogue
 Frontmatter is schema-validated — a malformed file fails the build rather than
 rendering a page with an empty date. Set `draft: true` to keep something visible
 in `pnpm dev` and out of the built site.
+
+### Changelog entries from GitHub
+
+`pnpm sync:releases` reads the GitHub releases of every catalogued project that
+has a `repo` and writes the ones it has not seen into `content/changelog/`. It
+converts GitHub's notes into a release body — headings demoted to `###`, the
+compare link and the `by @someone in #12` attributions dropped — and files each
+one under the anchor the site addresses it by, so re-running it is free and
+cannot overwrite anything.
+
+Everything it writes is `draft: true`. The two fields a release payload has no
+answer for are the two that matter most on the page: `headline`, the sentence
+the row is read as, and `breaking`, which is the one thing the grease pencil is
+for. Read the file, write the headline, decide `breaking`, drop the flag. A
+headline it had to invent is marked `!` in the output.
+
+```bash
+pnpm sync:releases                 # every project with a repo
+pnpm sync:releases peace --dry-run # one of them, printed rather than written
+```
+
+The same thing runs from GitHub: **Actions → Sync changelog → Run workflow**,
+which syncs, validates what it wrote, and opens a pull request on
+`sync/changelog` for you to read and merge. A run with nothing new ends
+without opening anything, and a run while that pull request is still open adds
+to it rather than raising a second one.
+
+It needs _Allow GitHub Actions to create and approve pull requests_
+(Settings → Actions → General). A project whose repository is private also
+needs a `RELEASES_TOKEN` secret that can read it; the default token cannot.
 
 ## Documentation
 
