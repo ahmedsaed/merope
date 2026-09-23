@@ -77,20 +77,26 @@ page: a prose paragraph or a `Commit: abc123` field that most of that project's
 releases carry is read as boilerplate, and merge commits go with it. A project
 with one release keeps everything, having nothing to compare it to.
 
-Everything it writes is `draft: true`. The two fields a release payload has no
-answer for are the two that matter most on the page: `headline`, the sentence
-the row is read as, and `breaking`, which is the one thing the grease pencil is
-for. Read the file, write the headline, decide `breaking`, drop the flag. A
-headline it had to invent is marked `!` in the output.
+The two fields a release payload has no answer for are the two that matter most
+on the page: `headline`, the sentence the row is read as, and `breaking`, which
+is the one thing the grease pencil is for. A headline it could not find at all
+arrives as `Version 1.11.1` and is marked `!` in the output.
+
+Entries are written live rather than as drafts, because the review happens
+somewhere better than a flag: the workflow opens a pull request, the whole site
+builds from it, and the entries can be read on the preview as rows on a page.
+Merging publishes them as they stand, so the headlines want writing first.
+`--draft` writes `draft: true` for a local run you do not intend to publish.
 
 ```bash
 pnpm sync:releases                 # every project with a repo
 pnpm sync:releases peace --dry-run # one of them, printed rather than written
+pnpm sync:releases --draft         # as drafts, invisible to a build
 ```
 
 The same thing runs from GitHub: **Actions → Sync changelog → Run workflow**,
-which syncs, validates what it wrote, and opens a pull request on
-`sync/changelog` for you to read and merge. A run with nothing new ends
+which syncs, builds the site to prove the entries survive it, and opens a pull
+request on `sync/changelog` for you to read on the preview and merge. A run with nothing new ends
 without opening anything, and a run while that pull request is still open adds
 to it rather than raising a second one.
 

@@ -10,8 +10,8 @@ on:
         description: 'One project slug. Blank syncs every project with a repo.'
         required: false
         type: string
-      publish:
-        description: 'Write entries live rather than as drafts. Read the note in the job first.'
+      draft:
+        description: 'Write entries as drafts, invisible to the build and to the preview.'
         required: false
         default: false
         type: boolean
@@ -85,7 +85,7 @@ jobs:
           # Read as data rather than interpolated into the script, so a slug
           # typed in the Actions tab cannot become shell.
           PROJECT: ${{ inputs.project }}
-          PUBLISH: ${{ inputs.publish }}
+          DRAFT: ${{ inputs.draft }}
         run: |
           # A project the sync cannot reach — renamed, deleted, private with no
           # token — fails this step, and the run stops without opening
@@ -96,8 +96,8 @@ jobs:
           if [ -n "$PROJECT" ]; then
             args+=("$PROJECT")
           fi
-          if [ "$PUBLISH" = 'true' ]; then
-            args+=('--publish')
+          if [ "$DRAFT" = 'true' ]; then
+            args+=('--draft')
           fi
           pnpm sync:releases "${args[@]}" | tee "$RUNNER_TEMP/sync.log"
 
@@ -116,12 +116,13 @@ jobs:
         if: steps.changed.outputs.any == 'true'
         run: |
           set -eo pipefail
-          # NODE_ENV=development because the content layer hides drafts outside
-          # it — and everything this job writes is a draft, so the ordinary
-          # check would walk straight past the new files. This is the only
-          # check these files get before a human sees them: the pull request
-          # this job opens does not start CI.
-          NODE_ENV=development pnpm check:content
+          # The whole site, because these entries are live rather than drafts
+          # and a build is what they now have to survive: `prebuild` runs
+          # `check:content` first, then every page renders, which is where a
+          # body that MDX cannot compile announces itself. Worth the minute —
+          # the pull request this job opens does not start CI, so without this
+          # the first thing to read these files would be the preview deploy.
+          pnpm build
           pnpm exec prettier --check content/changelog
 
       - name: Commit and push
@@ -144,10 +145,20 @@ jobs:
             echo
             echo 'Each entry needs two things a release payload cannot carry: a'
             echo '`headline`, the sentence the row on `/changelog` is read as, and'
-            echo '`breaking`, which is what the grease pencil is for. Lines marked `!`'
-            echo 'had no headline in the release notes and are placeholders.'
-            echo 'Unless the run asked to publish, the files below are `draft: true`'
-            echo 'and stay out of the built site until the flag comes off.'
+            echo '`breaking`, which is what the grease pencil is for.'
+            echo
+            echo 'These are live, not drafts: the preview on this pull request is the'
+            echo 'draft, and merging publishes them as they are.'
+            # The `!` lines are the entries whose headline the conversion could
+            # not find at all. Nothing downstream will stop `Version 1.11.1`
+            # reaching the site, so this is where it has to be unmissable.
+            if sed -n '/^!/p' "$RUNNER_TEMP/sync.log" | grep -q .; then
+              echo
+              echo '**These have no headline yet** — they say `Version x.y.z`, which is'
+              echo 'what the row already prints beside them:'
+              echo
+              sed -n 's|^!  *\([^ ]*\) .*|- [ ] `\1`|p' "$RUNNER_TEMP/sync.log"
+            fi
             echo
             echo '```'
             # `sed` rather than `grep -v`, which exits 1 when it matches
