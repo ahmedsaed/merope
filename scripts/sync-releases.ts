@@ -15,8 +15,9 @@
  * the date and the notes; it does not carry the two things a row on
  * `/changelog` needs a person for — the headline, which is the sentence the row
  * is read as, and `breaking`, which is the one thing `--mark` exists for. Both
- * are guessed, and a guess the conversion could not make at all arrives as
- * `Version 1.11.1`, marked `!` in the output below.
+ * are guessed, and a guess the conversion could not make at all is left out:
+ * the file carries no `headline` and the row prints none, which is marked `!`
+ * in the output below and is the whole signal that one needs writing.
  *
  * These are written live rather than as drafts, because the review happens
  * somewhere better than a flag: the workflow opens a pull request, the whole
@@ -152,7 +153,12 @@ async function fetchReleases(owner: string, name: string): Promise<GitHubRelease
   return releases;
 }
 
-type Written = { path: string; version: string; headline: string; source: HeadlineSource };
+type Written = {
+  path: string;
+  version: string;
+  headline: string | null;
+  source: HeadlineSource;
+};
 
 async function writeRelease(
   project: string,
@@ -258,14 +264,16 @@ async function main() {
     for (const entry of written) {
       // The headline is the one field worth printing: it is the line the row is
       // read as, and the guess behind it is the reason these land as drafts.
-      const flag = entry.source === 'body' ? ' ' : '!';
-      console.log(`${flag} ${entry.path.padEnd(42)} ${entry.headline}`);
+      // `!` is the whole signal that an entry needs writing: the file itself
+      // carries no headline at all, and the page will simply not print one.
+      const flag = entry.headline ? ' ' : '!';
+      console.log(`${flag} ${entry.path.padEnd(42)} ${entry.headline ?? '(no headline)'}`);
     }
-    const flagged = written.filter((entry) => entry.source === 'version').length;
+    const flagged = written.filter((entry) => !entry.headline).length;
     console.log(
       `\n${written.length} file(s)${options.dryRun ? ' would be written' : ' written'}` +
         (options.draft ? ', all draft: true' : '') +
-        (flagged ? `. ${flagged} marked ! need a headline written.` : '.'),
+        (flagged ? `. ${flagged} marked ! have no headline and need one written.` : '.'),
     );
   } else {
     console.log('\nnothing new.');

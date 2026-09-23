@@ -200,8 +200,8 @@ describe('deriveHeadline', () => {
       'peace v1.7.1 [173]',
     ]) {
       expect(deriveHeadline(release({ name }), '', '1.7.1', 'peace')).toEqual({
-        headline: 'Version 1.7.1',
-        source: 'version',
+        headline: null,
+        source: 'none',
         body: '',
       });
     }
@@ -216,8 +216,8 @@ describe('deriveHeadline', () => {
   it('refuses a body that opens by naming the release, and drops the line', () => {
     const body = 'Peace 1.7.1 (build 149)\n\n### Changes\n\n- fix: a real change';
     expect(deriveHeadline(release({ name: null }), body, '1.7.1', 'peace')).toEqual({
-      headline: 'Version 1.7.1',
-      source: 'version',
+      headline: null,
+      source: 'none',
       body: '### Changes\n\n- fix: a real change',
     });
   });
@@ -234,12 +234,21 @@ describe('deriveHeadline', () => {
     expect(named('Quieter notifications')).toBe('Quieter notifications');
   });
 
-  it('never returns more than the schema will accept', () => {
+  it('gives nothing rather than something invented, when there is nothing to give', () => {
     const body = `${'word '.repeat(200)}`;
-    const { headline, source } = deriveHeadline(release({ name: null }), body, '1.7.1', 'peace');
-    expect(headline.length).toBeLessThanOrEqual(160);
-    // Nothing usable in either place: a placeholder, flagged as one.
-    expect(source).toBe('version');
+    // A paragraph too long to be a headline, and no name: the row will carry
+    // its version, its date and its changes, and no sentence pretending to
+    // summarise them.
+    expect(deriveHeadline(release({ name: null }), body, '1.7.1', 'peace')).toMatchObject({
+      headline: null,
+      source: 'none',
+    });
+  });
+
+  it('never returns more than the schema will accept', () => {
+    const body = 'A short opening sentence. And a good deal more after it.';
+    const { headline } = deriveHeadline(release(), body, '1.7.1', 'peace');
+    expect(headline!.length).toBeLessThanOrEqual(160);
   });
 });
 
@@ -263,6 +272,13 @@ describe('renderReleaseFile', () => {
     draft: true,
     body: '### Added\n- a thing',
   };
+
+  it('leaves the headline out entirely when the release had none', () => {
+    const { data } = matter(renderReleaseFile({ ...file, headline: null }));
+    expect(data.headline).toBeUndefined();
+    // And the schema takes it: a row without a sentence is a row, not an error.
+    expect(releaseSchema.parse(data).headline).toBeUndefined();
+  });
 
   it('emits frontmatter the real schema accepts', () => {
     const { data } = matter(renderReleaseFile(file));
