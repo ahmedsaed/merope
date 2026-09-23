@@ -5,20 +5,26 @@
  *   pnpm sync:releases                 every catalogued project with a repo
  *   pnpm sync:releases peace           one of them
  *   pnpm sync:releases --dry-run       print what it would write
- *   pnpm sync:releases --publish       write them live rather than as drafts
+ *   pnpm sync:releases --draft         write them as drafts, invisible to a build
  *
  * Why a script and a committed file rather than a fetch at render time: the
  * site is `output: 'export'`, so there is no render time — the same reason the
  * star field is a committed module and the OG card is a committed PNG.
  *
- * **What it writes is a draft.** A release payload carries the version, the
- * date and the notes; it does not carry the two things a row on `/changelog`
- * needs a person for — the headline, which is the sentence the row is read as,
- * and `breaking`, which is the one thing `--mark` exists for. So every file
- * lands as `draft: true`: it builds in `pnpm dev`, it is excluded from `pnpm
- * build` and `check:content`, and a guessed headline therefore cannot reach the
- * site. Read it, fix the headline, decide `breaking`, drop the flag. Use
- * `--publish` to skip that and accept whatever the conversion guessed.
+ * **What it writes still needs reading.** A release payload carries the version,
+ * the date and the notes; it does not carry the two things a row on
+ * `/changelog` needs a person for — the headline, which is the sentence the row
+ * is read as, and `breaking`, which is the one thing `--mark` exists for. Both
+ * are guessed, and a guess the conversion could not make at all arrives as
+ * `Version 1.11.1`, marked `!` in the output below.
+ *
+ * These are written live rather than as drafts, because the review happens
+ * somewhere better than a flag: the workflow opens a pull request, the whole
+ * site builds from it, and the entries can be read on the preview as rows on a
+ * page rather than as frontmatter. That also puts them through `check:content`
+ * and the build, which skip drafts entirely — so an entry that would break the
+ * site now says so before anybody merges it. `--draft` restores the old
+ * behaviour for a local run you do not intend to publish.
  *
  * It never edits a file that already exists. A release is identified by its
  * anchor — `peace-1-7-1`, from frontmatter, the thing that may already be
@@ -52,23 +58,23 @@ const PER_PAGE = 100;
 /** A first sync of a long-lived project, and then never again. */
 const MAX_PAGES = 5;
 
-type Options = { dryRun: boolean; publish: boolean; only: Set<string> };
+type Options = { dryRun: boolean; draft: boolean; only: Set<string> };
 
 function parseArgs(argv: string[]): Options {
   const only = new Set<string>();
   let dryRun = false;
-  let publish = false;
+  let draft = false;
 
   for (const arg of argv) {
     if (arg === '--dry-run') dryRun = true;
-    else if (arg === '--publish') publish = true;
+    else if (arg === '--draft') draft = true;
     // A mistyped flag must not be read as a project slug and silently sync
     // nothing at all.
     else if (arg.startsWith('-')) throw new Error(`unknown option ${arg}`);
     else only.add(arg);
   }
 
-  return { dryRun, publish, only };
+  return { dryRun, draft, only };
 }
 
 /** `https://github.com/ahmedsaed/Peace` → `ahmedsaed/Peace`. */
@@ -90,8 +96,9 @@ function githubRepo(url: string): { owner: string; name: string } | null {
  * Every release anchor already on disk, drafts included.
  *
  * Read straight from the directory rather than through `getReleases()`, which
- * hides drafts outside `next dev` — and since this script writes drafts, going
- * through it would mean re-writing every file it had written last time.
+ * hides drafts outside `next dev`. An entry somebody is still drafting — by
+ * hand, or from a `--draft` run — is an entry that exists, and going through a
+ * reader that cannot see it would mean writing a second one over the top.
  */
 function knownAnchors(): Set<string> {
   if (!existsSync(CHANGELOG_DIR)) return new Set();
@@ -172,7 +179,7 @@ async function writeRelease(
     date: dateFromRelease(release),
     headline,
     breaking: looksBreaking(body),
-    draft: !options.publish,
+    draft: options.draft,
     body,
   });
 
@@ -254,14 +261,12 @@ async function main() {
       const flag = entry.source === 'body' ? ' ' : '!';
       console.log(`${flag} ${entry.path.padEnd(42)} ${entry.headline}`);
     }
+    const flagged = written.filter((entry) => entry.source === 'version').length;
     console.log(
       `\n${written.length} file(s)${options.dryRun ? ' would be written' : ' written'}` +
-        (options.publish ? '' : ', all draft: true') +
-        `. Lines marked ! had no headline in the release notes.`,
+        (options.draft ? ', all draft: true' : '') +
+        (flagged ? `. ${flagged} marked ! need a headline written.` : '.'),
     );
-    if (!options.dryRun) {
-      console.log('Read them, set the headline and breaking, then run pnpm check:content.');
-    }
   } else {
     console.log('\nnothing new.');
   }
