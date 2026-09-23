@@ -228,26 +228,36 @@ browser chrome.
   names `/changelog` and not the release that broke it. GitHub's own release
   template ships one, which is why `normaliseBody` in `scripts/release-notes.ts`
   strips them. In hand-written content use `{/* */}`.
-- **`pnpm sync:releases` writes drafts, and that is the design.** A GitHub
-  release carries the version, the date and the notes; it does not carry the
-  `headline` — the sentence a row on `/changelog` is read as — or `breaking`,
-  which is what `--mark` exists for. Both are guessed, so every synced file
-  lands as `draft: true` and is invisible to `pnpm build` and `check:content`
-  until a human has read it. Files are keyed on `releaseAnchor`, never on the
-  filename, so a re-run cannot duplicate or overwrite one — and the version an
-  anchor is built from drops semver build metadata, because a project that
-  releases every CI build otherwise files each build as a version of its own.
-  Peace's first sync wrote 46 entries for 15 versions, eight of which were
-  already on the site under their real numbers. The first build carrying a
-  version is the release of it — every hand-written Peace entry is dated to the
-  day of the first build tagged with its version — and the builds after it are
-  post-release work, so their notes fold into the entry the next version opens
-  rather than being dropped. What a project repeats in most of its releases —
-  an install paragraph, a `Commit:` field — is boilerplate and is dropped,
-  read from the project's own releases rather than from a list of templates.
-  A headline that is only the project and the version wearing a hat (`Peace
-1.11.1 (build 173)`) is refused for the same reason the row does not repeat
-  itself: it falls through to the placeholder, which announces itself.
+- **`pnpm sync:releases` writes live entries, and the pull request is the
+  draft.** A GitHub release carries the version, the date and the notes; it
+  does not carry the `headline` — the sentence a row on `/changelog` is read as
+  — or `breaking`, which is what `--mark` exists for. Both are guessed, and a
+  headline it could not find at all arrives as `Version 1.11.1`, marked `!` in
+  the run output and listed as an unticked box in the pull request. Nothing
+  downstream will stop that reaching the site: the review is the preview deploy
+  and the merge, not a flag. `--draft` writes `draft: true` for a local run you
+  do not intend to publish.
+- **The sync's own workflow builds the site before opening its pull request.**
+  A pull request opened with the default `GITHUB_TOKEN` does not start the
+  `pull_request` workflows, so CI never sees these files; and because they are
+  live rather than drafts, an entry MDX cannot compile takes the whole build
+  down. `pnpm build` in the sync job (with `check:content` ahead of it, through
+  `prebuild`) is what stands between a generated body and a red preview.
+- **A synced file is keyed on `releaseAnchor`, never on the filename**, so a
+  re-run cannot duplicate or overwrite one — and the version an anchor is built
+  from drops semver build metadata, because a project that releases every CI
+  build otherwise files each build as a version of its own. Peace's first sync
+  wrote 46 entries for 15 versions, eight of which were already on the site
+  under their real numbers. The first build carrying a version is the release
+  of it — every hand-written Peace entry is dated to the day of the first build
+  tagged with its version — and the builds after it are post-release work, so
+  their notes fold into the entry the next version opens rather than being
+  dropped. What a project repeats in most of its releases — an install
+  paragraph, a `Commit:` field — is boilerplate and is dropped, read from the
+  project's own releases rather than from a list of templates. A headline that
+  is only the project and the version wearing a hat (`Peace 1.11.1 (build
+173)`) is refused wherever it came from, the notes included: it falls through
+  to the placeholder, which announces itself.
 - **Heading anchors are for documents, not for list entries.** Every release
   body has a section called Added, so slugging them put eight elements called
   `added` on `/changelog` and six § links that scrolled the reader to a
