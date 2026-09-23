@@ -75,6 +75,16 @@ pnpm sync:releases                 # every project with a repo
 pnpm sync:releases peace --dry-run # one of them, printed rather than written
 ```
 
+The same thing runs from GitHub: **Actions → Sync changelog → Run workflow**,
+which syncs, validates what it wrote, and opens a pull request on
+`sync/changelog` for you to read and merge. A run with nothing new ends
+without opening anything, and a run while that pull request is still open adds
+to it rather than raising a second one.
+
+It needs _Allow GitHub Actions to create and approve pull requests_
+(Settings → Actions → General). A project whose repository is private also
+needs a `RELEASES_TOKEN` secret that can read it; the default token cannot.
+
 ## Documentation
 
 - [`docs/HANDOFF.md`](docs/HANDOFF.md) — **start here.** Current state, what is

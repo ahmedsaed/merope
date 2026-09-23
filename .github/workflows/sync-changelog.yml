@@ -1,0 +1,170 @@
+name: Sync changelog
+
+# Manual only, from the Actions tab. Releases are not frequent enough to be
+# worth polling for, and a run that opens a pull request is something somebody
+# should be ready to read.
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: 'One project slug. Blank syncs every project with a repo.'
+        required: false
+        type: string
+      publish:
+        description: 'Write entries live rather than as drafts. Read the note in the job first.'
+        required: false
+        default: false
+        type: boolean
+
+# Enough to push the branch and open the pull request, and no more.
+#
+# Two things about the default token are worth knowing before the first run:
+# "Allow GitHub Actions to create and approve pull requests" (Settings →
+# Actions → General) has to be on, or `gh pr create` answers 403; and a pull
+# request opened with it does not start the `pull_request` workflows, which is
+# why this job validates its own output below rather than leaving it to CI.
+permissions:
+  contents: write
+  pull-requests: write
+
+# One at a time: every run pushes the same branch.
+concurrency:
+  group: sync-changelog
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BRANCH: sync/changelog
+      # Whatever branch the run was dispatched from, which is the default
+      # branch unless somebody chose otherwise in the Actions tab.
+      BASE: ${{ github.ref_name }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The sync branch is merged with the base below, which needs a merge
+          # base to exist — a shallow clone does not have one.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Continue or start the sync branch
+        run: |
+          set -eo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          # An open sync branch is continued rather than raced. Entries already
+          # waiting for review are then already on disk, so the sync counts
+          # them as known and skips them instead of opening a second pull
+          # request carrying the same files. Merging the base in first means a
+          # release added by hand since the last run counts as known too.
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            git fetch origin "$BRANCH"
+            git switch --track "origin/$BRANCH"
+            git merge --no-edit "origin/$BASE"
+          else
+            git switch -c "$BRANCH"
+          fi
+
+      - name: Sync
+        env:
+          # The default token reads this repository's releases and any public
+          # repository. A project whose repo is private needs a token that can
+          # see it: add one as a RELEASES_TOKEN secret with `repo` scope.
+          GITHUB_TOKEN: ${{ secrets.RELEASES_TOKEN || secrets.GITHUB_TOKEN }}
+          # Read as data rather than interpolated into the script, so a slug
+          # typed in the Actions tab cannot become shell.
+          PROJECT: ${{ inputs.project }}
+          PUBLISH: ${{ inputs.publish }}
+        run: |
+          # A project the sync cannot reach — renamed, deleted, private with no
+          # token — fails this step, and the run stops without opening
+          # anything. That is deliberate: a partial sync that looks complete is
+          # worse than a red run naming the project it could not read.
+          set -eo pipefail
+          args=()
+          if [ -n "$PROJECT" ]; then
+            args+=("$PROJECT")
+          fi
+          if [ "$PUBLISH" = 'true' ]; then
+            args+=('--publish')
+          fi
+          pnpm sync:releases "${args[@]}" | tee "$RUNNER_TEMP/sync.log"
+
+      - name: Check for new entries
+        id: changed
+        run: |
+          set -eo pipefail
+          if [ -z "$(git status --porcelain content/changelog)" ]; then
+            echo 'No releases that are not already here.' >> "$GITHUB_STEP_SUMMARY"
+            echo 'any=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'any=true' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate what was written
+        if: steps.changed.outputs.any == 'true'
+        run: |
+          set -eo pipefail
+          # NODE_ENV=development because the content layer hides drafts outside
+          # it — and everything this job writes is a draft, so the ordinary
+          # check would walk straight past the new files. This is the only
+          # check these files get before a human sees them: the pull request
+          # this job opens does not start CI.
+          NODE_ENV=development pnpm check:content
+          pnpm exec prettier --check content/changelog
+
+      - name: Commit and push
+        if: steps.changed.outputs.any == 'true'
+        run: |
+          set -eo pipefail
+          git add content/changelog
+          git commit -m 'Sync changelog from GitHub releases'
+          git push origin "$BRANCH"
+
+      - name: Open or update the pull request
+        if: steps.changed.outputs.any == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eo pipefail
+
+          {
+            echo 'Written by the **Sync changelog** workflow from GitHub releases.'
+            echo
+            echo 'Each entry needs two things a release payload cannot carry: a'
+            echo '`headline`, the sentence the row on `/changelog` is read as, and'
+            echo '`breaking`, which is what the grease pencil is for. Lines marked `!`'
+            echo 'had no headline in the release notes and are placeholders.'
+            echo 'Unless the run asked to publish, the files below are `draft: true`'
+            echo 'and stay out of the built site until the flag comes off.'
+            echo
+            echo '```'
+            # `sed` rather than `grep -v`, which exits 1 when it matches
+            # nothing and would fail the step under `pipefail`.
+            tail -n 40 "$RUNNER_TEMP/sync.log" | sed '/^> /d'
+            echo '```'
+          } > "$RUNNER_TEMP/body.md"
+
+          cat "$RUNNER_TEMP/body.md" >> "$GITHUB_STEP_SUMMARY"
+
+          existing=$(gh pr list --head "$BRANCH" --state open --json url --jq '.[0].url // empty')
+          if [ -n "$existing" ]; then
+            echo "Updated $existing"
+          else
+            gh pr create \
+              --base "$BASE" \
+              --head "$BRANCH" \
+              --title 'Changelog: releases from GitHub' \
+              --body-file "$RUNNER_TEMP/body.md"
+          fi
