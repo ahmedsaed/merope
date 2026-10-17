@@ -1,0 +1,61 @@
+# Bottles config backup for Autodesk Fusion — DirectX 11 setup.
+# Guide: https://merope.dev/notes/fusion-360-on-linux
+#
+# Import in Bottles: main menu → Import → Import Configuration.
+# Install the runner below into Bottles first. If it is missing, Bottles
+# silently swaps in the newest runner it has, and the login breaks.
+#   https://github.com/Kron4ek/Wine-Builds/releases/tag/proton-11.0-2
+Name: Fusion 360 DX11
+Arch: win64
+Environment: Application
+Windows: win11
+Runner: kron4ek-wine-proton-11.0-2-amd64
+DXVK: dxvk-3.1.1
+VKD3D: vkd3d-proton-3.0.1
+NVAPI: dxvk-nvapi-v0.9.0
+LatencyFleX: latencyflex-v0.1.1
+Versioning: false
+DLL_Overrides:
+  # Wine 10+ ships a stub of this DLL; Autodesk's identity manager calls a
+  # function it does not implement and aborts. Disabled, it falls back.
+  bcp47langs: ''
+Environment_Variables:
+  # Fusion's Home page and Data Panel are Qt WebEngine (Chromium). Its sandbox
+  # cannot create its isolated desktop under Wine, so its helpers crash-loop.
+  QTWEBENGINE_DISABLE_SANDBOX: '1'
+  QTWEBENGINE_CHROMIUM_FLAGS: --no-sandbox
+Installed_Dependencies:
+  - arial32
+  - times32
+  - courie32
+  - mono
+  - gecko
+  - webview2
+  - andale32
+  - arialb32
+  - comic32
+  - georgi32
+  - impact32
+  - tahoma32
+  - trebuc32
+  - verdan32
+  - webdin32
+  - allfonts
+  - d3dx11
+  - atmlib
+  - msxml6
+  - d3dcompiler_42
+Parameters:
+  dxvk: true
+  vkd3d: true
+  dxvk_nvapi: false
+  discrete_gpu: true
+  sync: esync
+  custom_dpi: 96
+  renderer: vulkan
+  decorated: true
+  mouse_warp: true
+  virtual_desktop: false
+  virtual_desktop_res: 1920x1080
+  wayland: false
+External_Programs: {}
