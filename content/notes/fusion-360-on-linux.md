@@ -16,6 +16,9 @@ sandbox. If you just want it working, import one of the config files in
 [step 3](#3-create-the-bottle) and follow the rest in order. Each setting is
 explained at the end for when something breaks.
 
+Prefer to watch? There is a
+[video walkthrough of this guide](https://youtu.be/oaQNtYtFI1k) on YouTube.
+
 <Annotation>
   Tested on Fedora 44, kernel 7.2, GNOME on Wayland, an NVIDIA RTX 3060 with
   driver 615.71.9, Bottles 67.4 from Flathub and Fusion build 2705.1.30.
