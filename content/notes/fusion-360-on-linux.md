@@ -117,6 +117,7 @@ To set it up by hand instead, create an **Application** bottle and set:
 | Settings → DLL Overrides         | `bcp47langs` → Disabled                                                |
 | Settings → Environment Variables | `QTWEBENGINE_DISABLE_SANDBOX` = `1`                                    |
 |                                  | `QTWEBENGINE_CHROMIUM_FLAGS` = `--no-sandbox`                          |
+| Settings → Use discrete graphics | on, if the computer has two GPUs                                       |
 | Dependencies                     | `allfonts`, `webview2`, `msxml6`, `atmlib`, `d3dx11`, `d3dcompiler_42` |
 
 {/* SCREENSHOT bottle-settings.png: the bottle's settings page with runner, DXVK and VKD3D. Replace this comment with ![The bottle's settings](/files/fusion-360-on-linux/bottle-settings.png) */}
@@ -216,6 +217,11 @@ That is the install. The rest of this page is for when something goes wrong.
 **Clicking Sign in opens nothing, and console windows flash on and off.** The
 bottle is on an older runner. Wine before 11 crashes on the sign-in URL — see
 [why below](#why-the-runner). Check the bottle's runner.
+
+**The "Signing in" window stays blank, with no Sign in button.** Fusion cannot
+draw to its window on the GPU the bottle uses. On a computer with two GPUs, turn
+on **Use discrete graphics** in the bottle's settings so Fusion renders on the
+card your monitor is plugged into.
 
 **Sign-in finishes in the browser but Fusion stays signed out.** The link went to
 a different bottle, or the code expired. Run the helper again with the right
