@@ -148,8 +148,11 @@ Instead, **Add Shortcuts** and pick the launcher directly:
 <bottle>/drive_c/Program Files/Autodesk/webdeploy/production/<launcher-folder>/FusionLauncher.exe
 ```
 
-`<launcher-folder>` is the folder that contains `FusionLauncher.exe` and not
-`Fusion360.exe`. Leave the program's launch arguments empty.
+There are two folders under `production`, and **both** contain a
+`FusionLauncher.exe`. `<launcher-folder>` is the one where it sits next to
+`FusionLauncher.exe.ini` (and there is no `Fusion360.exe`). The copy in the
+build folder fails with "Configuration file … FusionLauncher.exe.ini is missing
+or incomplete". Leave the program's launch arguments empty.
 
 The launcher always starts the current build, so this survives Fusion updates.
 The build folder beside it is named after a hash that changes with every update,
