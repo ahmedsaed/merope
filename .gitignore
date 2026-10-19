@@ -52,3 +52,6 @@ next-env.d.ts
 # browser during review. Untracked, and ignored by prettier: its .yml files
 # otherwise fail `pnpm format:check`, which fails CI for no reason at all.
 .playwright-mcp/
+
+# generated card renders and STL
+/objects/card/out/

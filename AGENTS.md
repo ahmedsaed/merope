@@ -51,6 +51,8 @@ src/design/components/  Mark, Wordmark, StarField, HeroField, SkyBackdrop,
 src/lib/        merope.ts (lore), sky.ts (projection), site.ts (config),
                 field.ts (GENERATED — pnpm fetch:field), content/ (loader)
 content/        notes/, changelog/, projects/ — markdown with validated frontmatter
+objects/card/   the printed business card (OpenSCAD); data.scad is GENERATED —
+                pnpm card:data
 scripts/        shoot.ts (screenshots), render-og.ts (OG card + app icon),
                 fetch-field.ts, check-content.ts, static-server.ts,
                 sync-releases.ts + release-notes.ts (GitHub releases → changelog)
