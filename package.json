@@ -19,7 +19,8 @@
     "test:e2e": "playwright test",
     "render:og": "tsx scripts/render-og.ts",
     "fetch:field": "tsx scripts/fetch-field.ts",
-    "sync:releases": "tsx scripts/sync-releases.ts"
+    "sync:releases": "tsx scripts/sync-releases.ts",
+    "card:data": "tsx scripts/card.ts"
   },
   "dependencies": {
     "github-slugger": "^2.0.0",
@@ -40,12 +41,14 @@
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
+    "qrcode": "^1.5.4",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5",
