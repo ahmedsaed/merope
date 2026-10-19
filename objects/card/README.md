@@ -34,7 +34,7 @@ the sky side by side, as on the theme toggle.
 
 It encodes in capitals because scheme and host are case-insensitive and capitals
 fit QR's alphanumeric mode, which gets this URL into a 25×25 symbol at
-error-correction level Q. Modules are 0.84mm: two nozzle widths, so every one
+error-correction level Q. Modules are 0.9mm: two nozzle widths, so every one
 prints as at least two lines.
 
 `contact.merope.dev` is printed and cannot be changed. It is meant to be a
