@@ -16,7 +16,8 @@ W = 85;
 H = 55;
 CORNER = 3;
 BASE = 1.6;    // sky — swap to the pale filament at this height
-INK = 0.6;     // starlight
+INK = 0.4;     // starlight — two layers; every one past the first adds wobble,
+               // and one alone lets the dark card grey the white through it
 PENCIL = 0.4;  // grease pencil — swap to red at BASE + INK
 
 /* [Content] */
@@ -87,13 +88,15 @@ module ink() {
   for (s = STARS) translate([s[1], s[2]]) circle(r = s[3]);
   for (p = FIELD) translate(p) circle(r = FIELD_RADIUS, $fn = 16);
 
-  translate([MEROPE[0] + 4.3, MEROPE[1] - 0.75]) mono("MEROPE", 2.1);
+  translate([MEROPE[0] + 4.3, MEROPE[1] - 1.35]) mono("MEROPE", 2.8);
 
   translate([MARGIN, RULE_Y]) square([W - 2 * MARGIN, RULE]);
 
   translate([MARGIN, 8.4]) text(NAME, size = 4.6, font = SERIF);
-  translate([MARGIN, MARGIN]) mono(TITLE, 2.1);
-  translate([W - MARGIN, MARGIN]) mono(EMAIL, 2.1, halign = "right");
+  // The contact line drops into the bottom margin to buy its size: 2.4 is as
+  // large as the title and the email go on one line with a clear gap between.
+  translate([MARGIN, 3.8]) mono(TITLE, 2.4);
+  translate([W - MARGIN, 3.8]) mono(EMAIL, 2.4, halign = "right");
 
   qr_patch();
 }
