@@ -48,13 +48,13 @@ Elegoo Neptune 4 Pro, 0.4mm nozzle, one extruder, filament swapped by hand.
 | Z (mm)    | Filament | What                                     |
 | --------- | -------- | ---------------------------------------- |
 | 0 – 1.6   | dark     | the card                                 |
-| 1.6 – 2.2 | pale     | stars, text, rule, QR patch, ring's foot |
-| 2.2 – 2.6 | red      | the ring's top two layers                |
+| 1.6 – 2.0 | pale     | stars, text, rule, QR patch, ring's foot |
+| 2.0 – 2.4 | red      | the ring's top two layers                |
 
 - **Layer height 0.2mm, first layer 0.2mm.** Every height above is a whole
   number of layers, so each swap lands on a boundary.
 - **Two pauses**, added in the slicer's layer view: before the layer that ends
-  at **Z 1.8** (first pale layer) and before the layer that ends at **Z 2.4**
+  at **Z 1.8** (first pale layer) and before the layer that ends at **Z 2.2**
   (first red layer). Use the slicer's _pause_ rather than _colour change_ unless
   `printer.cfg` defines an `M600` macro. At each pause, unload, load, and purge
   until the new colour runs clean before resuming — a pale star with a grey
@@ -71,6 +71,6 @@ Elegoo Neptune 4 Pro, 0.4mm nozzle, one extruder, filament swapped by hand.
   print. Black or a deep navy, a cool white, and a brick red rather than a
   fire-engine one (the site's `--mark` is `#bf3d27`).
 
-Below the ring's red top it is pale for three layers; from the side that shows
+Below the ring's red top it is pale for two layers; from the side that shows
 as a thin band. Accepted, because the alternative — a ring that starts in the
-air at Z 2.2 — cannot be printed.
+air at Z 2.0 — cannot be printed.
