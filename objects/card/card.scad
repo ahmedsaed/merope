@@ -23,7 +23,7 @@ PENCIL = 0.4;  // grease pencil — swap to red at BASE + INK
 /* [Content] */
 NAME = "Ahmed El-Baz";
 TITLE = "SOFTWARE ENGINEER";
-EMAIL = "contact@merope.dev";
+EMAIL = "CONTACT@MEROPE.DEV";
 
 /* [Preview] */
 // "all" for the preview; "sky", "ink" or "pencil" to export one colour.
@@ -34,11 +34,12 @@ MONO = "IBM Plex Mono:style=SemiBold";
 
 MARGIN = 5;
 
-// QR: 0.84mm modules sit just over two nozzle widths, so every module — dark or
-// light — prints as at least two lines. Quiet zone is two modules rather than
+// QR: 0.9mm modules — two nozzle widths and change, so every module, dark or
+// light, prints as at least two lines. It is the largest size at which the
+// patch, growing down and left from the corner, still clears MEROPE's label. Quiet zone is two modules rather than
 // the spec's four; the dark card around it is not part of the code, but the
 // patch's own pale border is, and two modules is what scanners actually need.
-MODULE = 0.84;
+MODULE = 0.9;
 QUIET = 2;
 QR_N = len(QR);
 QR_SIDE = (QR_N + 2 * QUIET) * MODULE;
@@ -88,15 +89,17 @@ module ink() {
   for (s = STARS) translate([s[1], s[2]]) circle(r = s[3]);
   for (p = FIELD) translate(p) circle(r = FIELD_RADIUS, $fn = 16);
 
-  translate([MEROPE[0] + 4.3, MEROPE[1] - 1.35]) mono("MEROPE", 2.8);
+  // Free to run under the QR patch: its cap line sits below the patch's edge.
+  translate([MEROPE[0] + 4.3, MEROPE[1] - 1.75]) mono("MEROPE", 3.2);
 
   translate([MARGIN, RULE_Y]) square([W - 2 * MARGIN, RULE]);
 
   translate([MARGIN, 8.4]) text(NAME, size = 4.6, font = SERIF);
-  // The contact line drops into the bottom margin to buy its size: 2.4 is as
-  // large as the title and the email go on one line with a clear gap between.
-  translate([MARGIN, 3.8]) mono(TITLE, 2.4);
-  translate([W - MARGIN, 3.8]) mono(EMAIL, 2.4, halign = "right");
+  // The contact line drops into the bottom margin to buy its size: 2.5 is as
+  // large as the title and the email go on one line and still read as two;
+  // at 2.55 the gap closes to 2.4mm and they run together into one phrase.
+  translate([MARGIN, 3.6]) mono(TITLE, 2.5);
+  translate([W - MARGIN, 3.6]) mono(EMAIL, 2.5, halign = "right");
 
   qr_patch();
 }
