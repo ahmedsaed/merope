@@ -63,6 +63,20 @@
     scroll-snap-type: y proximity;
   }
 
+  /*
+   * No snapping under a finger.
+   *
+   * A flick ends in momentum, and a proximity snap then takes over wherever the
+   * momentum happened to run out — so on a phone the page lurches to a section
+   * edge the reader never aimed for. Keyed on the pointer rather than the width
+   * so a phone turned sideways, which is wider than `sm`, does not get it back.
+   */
+  @media (pointer: coarse) {
+    html {
+      scroll-snap-type: none;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
