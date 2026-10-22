@@ -39,6 +39,7 @@ something breaks or for porting them to another phone.
 | Network         | Wi-Fi with a stable MAC address, DHCP or a static IP          |
 | Containers      | Docker and Docker Compose, with crun on cgroup v1             |
 | Free for things | about 5 GB of RAM and 100 GB of disk                          |
+| Battery         | charging stops at 80%, so a phone plugged in 24/7 lasts       |
 | Not working     | a firewall (the kernel has no nf_tables); see the limitations |
 
 ## What you need
@@ -315,6 +316,61 @@ docker rm -f web
 `docker info` should show `Cgroup Version: 1` and `Default Runtime: crun`, with
 only one warning: that cgroup v1 support is deprecated.
 
+## 10. Pin the patched initramfs
+
+The phone runs the patched `postmarketos-initramfs` you built in step 4, as
+version `3.12.5-r1`, while the online repository has `3.12.5-r0`. Yours is
+newer, so it wins — until upstream publishes a newer version. Then
+`apk upgrade` replaces it with the unpatched one, rebuilds the boot image, and
+the next boot stops at `unable to mount root partition!`. Pin it:
+
+```sh
+sudo apk add postmarketos-initramfs=3.12.5-r1
+```
+
+Use the version `apk policy postmarketos-initramfs` shows as installed. The
+kernel is already pinned the same way by the installer. If an upgrade ever
+needs a newer initramfs, apk now refuses and says so instead of breaking the
+boot; the patch then has to be rebuilt against the new version.
+
+The same goes for upgrades in general: `edge` changes daily, so run
+`apk upgrade` on purpose, read what it does, and reboot while the phone is in
+reach.
+
+## 11. Limit the battery charge
+
+A phone that sits on its charger at 100% around the clock wears its battery
+out, and a swollen battery is the usual way old phones die. Samsung's battery
+driver has the switch behind One UI's **Protect battery** option: write a
+percentage to `batt_full_capacity`, and the phone stops charging there and
+starts again 2% below it. It only turns charging off; the phone keeps running
+from the charger.
+
+The setting is lost at every boot, so set it from a script that OpenRC's
+`local` service runs at startup. Paste these as separate commands — when
+`sudo` asks for a password, it swallows the rest of a multi-line paste:
+
+```sh
+printf '#!/bin/sh\necho 80 > /sys/class/power_supply/battery/batt_full_capacity\n' | sudo tee /etc/local.d/battery-limit.start
+sudo sh -c 'chmod +x /etc/local.d/battery-limit.start && /etc/local.d/battery-limit.start'
+```
+
+A few seconds later, the battery reports that it has stopped:
+
+```sh
+cat /sys/class/power_supply/battery/status     # Not charging
+dmesg | grep "stop charging"                   # stop charging(95, 80)
+```
+
+Above the limit it drifts down slowly on its own; from then on it holds
+between 78% and 80%.
+
+<Annotation>
+  The driver also has a `store_mode`, meant for demo phones in shops, which
+  holds the battery between 60% and 70%. It cannot be turned off again without
+  a reboot, so `batt_full_capacity` is the better switch.
+</Annotation>
+
 That is the install. The rest of this page is for living with it, and for when
 something goes wrong.
 
@@ -385,6 +441,14 @@ built without `--arch aarch64`. See [why](#why-the-partition-table-is-rewritten)
 
 **Boot stops with `unable to mount root partition!`.** The initramfs is
 unpatched. Same cause, same fix. See [why](#why-direct-io-is-turned-off).
+
+**After an `apk upgrade`, boot stops with `unable to mount root partition!`.**
+The upgrade replaced the patched initramfs. Restore `boot-backup.img` from
+TWRP if you have one, or install the patched initramfs package again and run
+`sudo mkinitfs`, then pin it as in step 10.
+
+**The battery still says `Charging` right after setting the limit.** The driver
+applies the limit on its next check. Read `status` again a few seconds later.
 
 **SSH key login keeps asking for the password.** The home directory
 permissions; see step 7.
