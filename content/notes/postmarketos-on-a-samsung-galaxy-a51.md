@@ -15,8 +15,9 @@ The A51 used to install with the stock postmarketOS tooling. It no longer does.
 The device is _archived_ in postmarketOS — nobody maintains it — and several
 changes made across the project during 2026 each broke it in a different way: the
 kernel no longer builds, the boot image is compressed in a format the kernel
-cannot read, and the boot scripts cannot find or mount the root filesystem. The
-fixes are five small patches, published with scripts and notes in
+cannot read, and the boot scripts cannot find or mount the root filesystem.
+Even the compressed swap that postmarketOS sets up for you fails, silently. The
+fixes are seven small patches, published with scripts and notes in
 [ahmedsaed/pmos-samsung-a51](https://github.com/ahmedsaed/pmos-samsung-a51). Follow the steps in order and you
 end up with a working server; each fix is explained at the end, for when
 something breaks or for porting them to another phone.
@@ -40,6 +41,7 @@ something breaks or for porting them to another phone.
 | Containers      | Docker and Docker Compose, with crun on cgroup v1             |
 | Free for things | about 5 GB of RAM and 100 GB of disk                          |
 | Battery         | charging stops at 80%, so a phone plugged in 24/7 lasts       |
+| Swap            | 8 GB of compressed swap in RAM (zram), set up at boot         |
 | Not working     | a firewall (the kernel has no nf_tables); see the limitations |
 
 ## What you need
@@ -103,6 +105,8 @@ scripts/apply-patches.sh
 | pmaports `0002` installer: 512-byte partitions | boot stops at "failed to mount subpartitions"             |
 | pmaports `0003` initramfs: no direct I/O       | boot stops at "unable to mount root partition"            |
 | pmaports `0004` kernel: Docker options         | Docker containers cannot start                            |
+| pmaports `0005` zram: lzo-rle compression      | no swap: the kernel has no zstd for zram                  |
+| pmaports `0006` kernel: install module files   | no swap: `modprobe zram` fails although zram is built in  |
 
 The script is safe to re-run; it skips patches that are already applied. A
 `pmbootstrap pull` will conflict with them, so after updating, reset the two
@@ -380,29 +384,36 @@ Reinstalling wipes everything you set up on the phone, so a rebuilt kernel is
 installed in place. On the PC:
 
 ```sh
-pmbootstrap build linux-samsung-a51
-apk=linux-samsung-a51-4.14.113-r2.apk     # the version you just built
-ssh user@PHONE "cat > $apk" < packages/edge/aarch64/$apk
+pmbootstrap build linux-samsung-a51 device-samsung-a51
+for p in linux-samsung-a51-4.14.113-r3 device-samsung-a51-5-r2; do   # the versions you just built
+  ssh user@PHONE "cat > $p.apk" < packages/edge/aarch64/$p.apk
+done
 ssh user@PHONE "cat > install-kernel.sh" < scripts/phone/install-kernel.sh
 ```
 
 On the phone:
 
 ```sh
-sudo sh ~/install-kernel.sh ~/linux-samsung-a51-4.14.113-r2.apk
+sudo sh ~/install-kernel.sh ~/linux-samsung-a51-4.14.113-r3.apk ~/device-samsung-a51-5-r2.apk
 sudo reboot
 ```
 
 The script saves the current boot partition to `~/boot-backup.img`, installs
-the package, rebuilds the boot image, and only writes it to the boot partition
-if it really was rebuilt.
+the packages, rebuilds the boot image, and only writes it to the boot partition
+if it really was rebuilt. The device package goes in with the kernel because
+its settings end up in the same boot image.
 
-If the new kernel does not boot, restore the old one from TWRP:
+Copy the backup to the PC before rebooting
+(`ssh user@PHONE "cat boot-backup.img" > boot-backup.img`): TWRP cannot read
+postmarketOS's partition, so a copy on the phone is out of reach when the new
+kernel does not boot. To restore it from TWRP:
 
 ```sh
 adb push boot-backup.img /tmp/
 adb shell dd if=/tmp/boot-backup.img of=/dev/block/by-name/boot
 ```
+
+The first boot after an update can take a few minutes longer than usual.
 
 ## Troubleshooting
 
@@ -468,6 +479,12 @@ missing from `/etc/rc.conf`, or the kernel is older than the one with patch
 **Docker fails to start, and its log mentions `checkpath: not found`.** The
 `PATH` line in `/etc/conf.d/docker` replaces the path instead of adding to it.
 Re-run the setup script, which fixes it.
+
+**`free -m` shows `Swap: 0`, and `rc-service postmarketos-zram-swap status`
+says stopped.** The phone runs a kernel or device package from before patches
+`0005` and `0006`. Update both as in
+[updating the kernel](#updating-the-kernel-without-reinstalling). See
+[why](#why-swap-needed-two-fixes).
 
 ## How to debug a phone that will not boot
 
@@ -621,6 +638,30 @@ kernel has, including `schedtune`, an Android scheduler controller that only
 allows a handful of groups. crun creates one per container, and once the slots
 run out it fails with `Out of memory` — of slots, not memory. Telling OpenRC not
 to mount it (`rc_cgroup_controllers="schedtune"`) makes it disappear.
+
+### Why swap needed two fixes
+
+postmarketOS sets up [zram](https://docs.kernel.org/admin-guide/blockdev/zram.html)
+swap on every device: a compressed block device in RAM that the kernel swaps
+idle memory into. Most memory compresses two to three times, so it stretches
+the phone's 5.5 GB without wearing out its storage the way swap on disk would.
+The service that sets it up is enabled by default — and on the A51 it failed at
+every boot without a word, leaving no swap at all.
+
+Its script stops at the first error, and there were two in a row. First it runs
+`modprobe zram`. zram is built into this kernel, which is fine on other phones:
+`modprobe` reads `modules.builtin`, sees that zram is built in, and succeeds.
+But the A51's kernel package never installed that file — its build skipped
+`make modules_install` — so `modprobe` could not tell, and failed. Patch `0006`
+adds the step; the phone then indexes the files itself when the package is
+installed.
+
+Behind that was the same problem as the boot loop. The script compresses with
+zstd unless told otherwise, and this kernel's zram knows only `lzo`, `lzo-rle`
+and `deflate`. Patch `0005` sets `deviceinfo_zram_swap_algo="lzo-rle"` in the
+device package. The script's other settings work: it raises the kernel's
+`swappiness` to 180, above the usual limit of 100 on a 4.14 kernel, and Samsung
+had raised that limit to 200.
 
 ## Known limitations
 
