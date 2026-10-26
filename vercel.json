@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [{ "source": "/notes/first-light", "destination": "/notes", "permanent": true }],
   "headers": [
     {
       "source": "/(.*)",
