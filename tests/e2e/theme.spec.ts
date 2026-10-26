@@ -92,7 +92,7 @@ test.describe('theme', () => {
   test('carries the choice across navigations', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'sky' }).click();
-    await page.goto('/notes/first-light');
+    await page.goto('/notes/fusion-360-on-linux');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'sky');
   });
 });
