@@ -32,6 +32,11 @@ export const viewport: Viewport = {
   ],
 };
 
+// Cookieless page-view counts from our own Umami (stats.merope.dev). Inlined at
+// build time; only the production build sets it, so dev, CI and previews count
+// nothing.
+const UMAMI_WEBSITE_ID = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang={SITE.locale} className={fontVariables} suppressHydrationWarning>
@@ -62,6 +67,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: CONSOLE_BANNER_SCRIPT(COORDINATE_LINE, NEBULA.thesis),
           }}
         />
+        {/* A plain deferred tag for the same reason as above: `next/script`
+            under `output: 'export'` waits on the framework runtime. */}
+        {UMAMI_WEBSITE_ID && (
+          <script
+            defer
+            src="https://stats.merope.dev/p.js"
+            data-website-id={UMAMI_WEBSITE_ID}
+            data-do-not-track="true"
+          />
+        )}
       </head>
       <body className="grain min-h-dvh">
         {/* Behind everything, on every route. The site stands on a sky rather
