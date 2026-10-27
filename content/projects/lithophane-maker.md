@@ -1,7 +1,7 @@
 ---
 name: Lithophane Cube Maker
 summary: Five photos in, a 3D-printable lithophane lamp out — four sides, a top, and the frame that holds them, built entirely in your browser and free down to the fifth panel.
-magnitude: 5
+magnitude: 4
 kind: tool
 firstLight: 2026-10-27
 url: https://lithophane-maker.merope.dev
@@ -50,7 +50,8 @@ object people mostly make out of family pictures.
 
 ## Where it is
 
-The geometry is tested; the fits are being printed now, and the defaults will
-move to whatever survives the printer. The code is MIT-licensed, and a report of
-how a cube printed on your machine is the most useful thing anyone can send
-back.
+The geometry is tested, and the fits that depend on the printer — how a panel
+slides into its groove, how firmly the lid grips — have been dialled in with
+test prints; the defaults carry those numbers. A full cube from this version is
+on the printer now. The code is MIT-licensed, and a report of how a cube printed
+on your machine is the most useful thing anyone can send back.
