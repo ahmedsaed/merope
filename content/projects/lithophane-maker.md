@@ -51,7 +51,9 @@ object people mostly make out of family pictures.
 ## Where it is
 
 The geometry is tested, and the fits that depend on the printer — how a panel
-slides into its groove, how firmly the lid grips — have been dialled in with
-test prints; the defaults carry those numbers. A full cube from this version is
-on the printer now. The code is MIT-licensed, and a report of how a cube printed
-on your machine is the most useful thing anyone can send back.
+slides into its groove, how firmly the lid grips — were dialled in with test
+prints. The first full cube has been printed and assembled at those fits. What
+it took was not looser numbers but care at the bench: deburring the edge a brim
+leaves behind, and pressing the lid on straight. The code is MIT-licensed, and a
+report of how a cube printed on your machine is the most useful thing anyone can
+send back.
