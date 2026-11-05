@@ -282,7 +282,7 @@ open and is worth having on its own.
 | Background      | Real sky, site-wide                                | 650 Gaia stars, not a scatter. A particle field is the cliché this direction exists to avoid.                        |
 | Star glyph      | One constant, both scales                          | Cluster and backdrop must agree, or the page has two star systems in it.                                             |
 | Theme control   | Two chips + a tooltip                              | `plate / sky` read as jargon to a first-time visitor. Still not a sun and a moon.                                    |
-| Page rhythm     | One section, one screen                            | `screenful`. Sections fill the viewport and centre content; snap on a marker, never the section.                     |
+| Page rhythm     | One section, one screen                            | `screenful`. Sections fill the viewport and centre content. No scroll snapping — removed, see `AGENTS.md`.           |
 | Release anchors | `project-version`, plus a rolling `project-latest` | Frontmatter, not the filename: a shared URL must survive a rename, and "latest" must not need editing every release. |
 
 ### Known constraints of static export

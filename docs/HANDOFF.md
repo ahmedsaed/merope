@@ -289,14 +289,13 @@ and is wrong.
   theme for the whole fade. It is now a flat `background-color` behind a static
   `mask-image`. The same class of bug hits every SVG `fill`, `stroke` and
   `stop-color` — hence the `exposure` utility in `globals.css`.
-- **A section taller than the screen must not be a scroll-snap target.** When a
-  snap area is larger than the viewport the scroller may only rest where that
-  area still covers it, so everything past the section's bottom edge is dragged
-  back. A 1.7-screen catalogue made the footer unreachable — the document would
-  not scroll past 1552 of 1812. **`proximity` does not help;** the rule applies
-  whatever the strictness. `screenful` snaps on a zero-height `::before` marker
-  instead. With one catalogue row this is completely invisible, which is why the
-  seed content matters.
+- **Scroll snapping was removed (2026-11-06).** It was `proximity` snapping to
+  each section's top on the home page. On a Linux touchpad the scroll gesture
+  often never reports its end, so the snap fired on the next click instead and
+  pulled the page to the nearest section — footer links moved as they were
+  clicked. Earlier versions had already trapped the footer below a tall
+  catalogue and scrolled the masthead off the 404. `screenful` still sizes and
+  centres sections; nothing snaps. See `AGENTS.md`.
 - **A CSS gradient cannot be transitioned,** so the clearing under the hero
   snapped to the new theme while the page cross-faded for 900ms. It is a flat
   `background-color` behind a static `mask-image` now, and anything else that

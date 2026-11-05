@@ -28,10 +28,9 @@ export default function NotFound() {
   return (
     <Page>
       {/* The offset is not decoration. `screenful` alone makes this page exactly
-          one header taller than the viewport, and the snap marker at the
-          section's top edge then pulls the masthead off-screen the moment the
-          page settles. Subtracting the header is what puts the rest position at
-          the top of the document — the same reason the hero carries it. */}
+          one header taller than the viewport, so a page with one sentence on it
+          would scroll. Subtracting the header makes it fit — the same reason
+          the hero carries it. */}
       <section className="screenful py-16 [--screen-offset:var(--header-block)]">
         <div className="max-w-(--measure-prose)">
           <Annotation as="p" tone="faint">
