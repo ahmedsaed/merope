@@ -20,6 +20,7 @@
     "render:og": "tsx scripts/render-og.ts",
     "fetch:field": "tsx scripts/fetch-field.ts",
     "sync:releases": "tsx scripts/sync-releases.ts",
+    "org:profile": "tsx scripts/write-org-profile.ts",
     "card:data": "tsx scripts/card.ts"
   },
   "dependencies": {

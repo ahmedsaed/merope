@@ -56,6 +56,8 @@ objects/card/   the printed business card (OpenSCAD); data.scad is GENERATED —
 scripts/        shoot.ts (screenshots), render-og.ts (OG card + app icon),
                 fetch-field.ts, check-content.ts, static-server.ts,
                 sync-releases.ts + release-notes.ts (GitHub releases → changelog)
+                org-profile.ts + write-org-profile.ts (catalogue → the
+                merope-studio GitHub profile README)
 docs/           HANDOFF.md (start here), BRAND.md (direction),
                 LORE.md (verified facts + sources),
                 ROADMAP.md (phases and decisions)

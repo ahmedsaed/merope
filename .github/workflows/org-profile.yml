@@ -1,0 +1,88 @@
+name: Organisation profile
+
+# Keeps the README on github.com/merope-studio in step with the catalogue.
+#
+# The organisation is a signpost: the code lives on the author's own account
+# and the catalogue lives in this repository. Its profile is rendered from
+# `content/projects/` by `pnpm org:profile`, so a project that changes
+# magnitude, or joins the catalogue, changes the profile on the next push to
+# main — and a push that changes nothing it reads commits nothing.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'content/projects/**'
+      - 'src/lib/site.ts'
+      - 'src/lib/merope.ts'
+      - 'scripts/org-profile.ts'
+      - 'scripts/write-org-profile.ts'
+  workflow_dispatch:
+
+# Nothing in this repository is written. The push goes to another repository,
+# with its own token.
+permissions:
+  contents: read
+
+concurrency:
+  group: org-profile
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      # A fine-grained token scoped to merope-studio/.github alone, with
+      # Contents: read and write. The default token cannot reach another
+      # repository, so without this secret the job says so and stops green —
+      # a missing secret is a setup step, not a broken build.
+      ORG_PROFILE_TOKEN: ${{ secrets.ORG_PROFILE_TOKEN }}
+
+    steps:
+      - name: Check for the token
+        id: token
+        run: |
+          if [ -z "$ORG_PROFILE_TOKEN" ]; then
+            echo 'No ORG_PROFILE_TOKEN secret: the profile was not updated.' >> "$GITHUB_STEP_SUMMARY"
+            echo 'present=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'present=true' >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.token.outputs.present == 'true'
+
+      - uses: actions/checkout@v4
+        if: steps.token.outputs.present == 'true'
+        with:
+          repository: merope-studio/.github
+          token: ${{ secrets.ORG_PROFILE_TOKEN }}
+          path: org-profile
+
+      - uses: pnpm/action-setup@v4
+        if: steps.token.outputs.present == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.token.outputs.present == 'true'
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+        if: steps.token.outputs.present == 'true'
+
+      - name: Render and push
+        if: steps.token.outputs.present == 'true'
+        run: |
+          set -eo pipefail
+          pnpm org:profile org-profile/profile/README.md
+          cd org-profile
+          if [ -z "$(git status --porcelain)" ]; then
+            echo 'The profile already matches the catalogue.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add profile/README.md
+          git commit -m "Profile from ahmedsaed/merope@${GITHUB_SHA::7}"
+          git push
+          echo 'Updated the profile.' >> "$GITHUB_STEP_SUMMARY"
