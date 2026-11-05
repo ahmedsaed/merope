@@ -15,9 +15,35 @@ a lamp out of five of them — four sides and a top — with a frame, a lid, and
 hole in the floor for the cable. You choose the photos and the size; it hands
 back files ready to slice.
 
+<figure>
+  <img
+    src="/files/printing-the-first-lithophane-cube/cube-lit.jpg"
+    alt="A small cube lamp with an orange frame, lit from inside. A white lily glows on the top panel, the pyramids of Giza on the left side and a solar eclipse on the right."
+    width="1440"
+    height="1440"
+  />
+  <figcaption>The first cube, lit: a lily on top, Giza and an eclipse on the sides.</figcaption>
+</figure>
+
 The fifth panel is the reason it exists. The best-known lithophane box generator
 stopped at four sides when this one was started, and the top it has added since
 sits behind a payment. Here every panel is free, and so is everything else.
+
+It was also the hardest part to design. A side panel slides down
+grooves in the corner posts and is held on all four edges; a top panel has
+nothing to slide into. It ended up the same square as the sides, resting on four
+small supports at the inside corners, with the lid trapping it from above — five
+identical panels, every face framed alike.
+
+<figure>
+  <img
+    src="/files/lithophane-maker/parts.png"
+    alt="The tool in the browser: five empty image slots and the cube settings on the left, and on the right a 3D preview pulled apart — the frame with its four corner posts, four side panels standing around it, and the lid floating above."
+    width="1440"
+    height="900"
+  />
+  <figcaption>The exploded preview: frame, posts, four sides and the lid.</figcaption>
+</figure>
 
 ## Most of the work went into not wasting a print
 
@@ -50,10 +76,16 @@ object people mostly make out of family pictures.
 
 ## Where it is
 
-The geometry is tested, and the fits that depend on the printer — how a panel
-slides into its groove, how firmly the lid grips — were dialled in with test
-prints. The first full cube has been printed and assembled at those fits. What
-it took was not looser numbers but care at the bench: deburring the edge a brim
-leaves behind, and pressing the lid on straight. The code is MIT-licensed, and a
-report of how a cube printed on your machine is the most useful thing anyone can
-send back.
+The first full cube is printed, assembled and lit. It nearly taught the wrong
+lesson. The first panel bound in its groove and a lid peg snapped, so the
+default fits were loosened and shipped the same day — and then the other four
+panels slid in at the _original_ fit. The groove had never been the problem: the
+brim leaves a ridge on a panel's bottom edge, and the posts lean slightly once
+printed. The next release went back to the fits the test pieces chose, and put
+deburring and squaring the posts into the assembly steps instead.
+[Printing the first lithophane cube](/notes/printing-the-first-lithophane-cube)
+tells the whole story.
+
+The code is MIT-licensed, and a report of how a cube printed on your machine is
+the most useful thing anyone can send back — the one thing the tests cannot
+check.
