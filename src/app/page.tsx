@@ -17,8 +17,8 @@ import { SITE, STATEMENT } from '@/lib/site';
  * whole reason the blocks were ordered this way in the first place. Phase 4's
  * newsletter slots in below the notes on the same terms.
  *
- * Every block after the hero is a `screenful`: it fills the viewport, centres
- * its content, and the scroll anchors at its top edge.
+ * Every block after the hero is a `screenful`: it fills the viewport and
+ * centres its content.
  */
 export default function Home() {
   /** Three is the strip. More than that and it stops being a pointer to the

@@ -51,30 +51,19 @@
     scroll-behavior: smooth;
 
     /*
-     * `proximity`, never `mandatory`.
+     * No scroll snapping, anywhere.
      *
-     * Mandatory snapping forces the scroll to a snap point no matter where the
-     * reader stopped, which traps anything taller than the viewport — the
-     * catalogue, the moment the studio has more than a couple of projects, and
-     * every note page after that. Proximity only pulls when you have already
-     * come to rest near a boundary, so a section arrives composed instead of
-     * half-visible, and reading a long one is never fought.
+     * The home page used to snap to the top of each section, `proximity` on a
+     * mouse and off under a finger. It is gone because when a snap runs is the
+     * browser's decision, not the page's, and it ran at the wrong moment on
+     * real hardware: on a Linux touchpad the gesture often never reports that
+     * it ended, so the snap waited for the next input — a click — and dragged
+     * the page to the nearest section top under the pointer. A link that moves
+     * as you click it cannot be clicked. Before that it had already trapped the
+     * footer below a tall catalogue and scrolled the masthead off the 404.
+     * Sections still fill the screen and centre their content (`screenful`);
+     * they just no longer pull.
      */
-    scroll-snap-type: y proximity;
-  }
-
-  /*
-   * No snapping under a finger.
-   *
-   * A flick ends in momentum, and a proximity snap then takes over wherever the
-   * momentum happened to run out — so on a phone the page lurches to a section
-   * edge the reader never aimed for. Keyed on the pointer rather than the width
-   * so a phone turned sideways, which is wider than `sm`, does not get it back.
-   */
-  @media (pointer: coarse) {
-    html {
-      scroll-snap-type: none;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -159,9 +148,9 @@
  * A section that owns a screen.
  *
  * Every top-level block of the page fills the viewport and centres what is in
- * it, so scrolling moves one block at a time and each arrives composed rather
- * than half-visible. It is the reason the page reads as a sequence of plates
- * rather than as a scroll.
+ * it, so each one can be read as a composed screen rather than a slice of a
+ * scroll. It is the reason the page reads as a sequence of plates. It does not
+ * snap — see the note on `html` above for why that was removed.
  *
  * `dvh` and not `vh`: on a phone `vh` is the height with the browser chrome
  * retracted, so a 100vh section is taller than the screen until you scroll, and
@@ -180,40 +169,6 @@
   min-height: calc(100dvh - var(--screen-offset, 0px));
   flex-direction: column;
   justify-content: center;
-
-  /* The snap target is a marker at the top edge, never the section itself.
-   *
-   * A section IS allowed to outgrow the screen, and the moment one does,
-   * putting `scroll-snap-align` on it becomes a trap: when a snap area is
-   * larger than the snapport, the scroller may only rest where the area still
-   * covers the viewport, so every position past the section's bottom edge gets
-   * pulled back to it. With a catalogue 1.7 screens tall that made the footer
-   * literally unreachable — and `proximity` does not help, because the
-   * oversized rule applies whatever the strictness.
-   *
-   * A zero-height marker can never be larger than the snapport, so it offers a
-   * resting place at the top of each section without capturing the scroll
-   * between them. It is out of flow so `justify-content: center` cannot drag it
-   * into the middle of the section it is meant to mark.
-   *
-   * The margin is what makes the first screen settle at the very top of the
-   * document rather than at the top of the hero: the hero begins below the
-   * header, so without it the snap would scroll the header off the page.
-   * Reusing --screen-offset means the height and the rest position can never
-   * disagree. */
-  position: relative;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 1px;
-    height: 1px;
-    pointer-events: none;
-    scroll-snap-align: start;
-    scroll-margin-top: var(--screen-offset, 0px);
-  }
 }
 
 /* ---------------------------------------------------------------------------

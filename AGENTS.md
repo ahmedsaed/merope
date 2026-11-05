@@ -153,18 +153,17 @@ browser chrome.
   `scrollWidth === clientWidth` at 390px after touching the hero, and check it
   against the **static export**: `next dev` injects an overlay with its own
   overflow and will mislead you in both directions.
-- **Never put `scroll-snap-align` on a section that can outgrow the screen.**
-  When a snap area is larger than the snapport, the scroller may only rest where
-  that area still covers the viewport — so every position past the section's
-  bottom edge is dragged back to it. With a catalogue 1.7 screens tall this made
-  the footer literally unreachable: the document refused to scroll past 1552 of 1812. **`proximity` does not save you.** The oversized-area rule applies
-  whatever the strictness, which is the opposite of what the keyword sounds like
-  it promises. `screenful` therefore snaps on a zero-height `::before` marker at
-  the section's top edge, which can never be larger than the snapport. The
-  marker is absolutely positioned so `justify-content: center` cannot drag it
-  into the middle of the section it is meant to mark, and it carries
-  `scroll-margin-top: var(--screen-offset)` so the first screen settles at the
-  top of the document instead of scrolling the header off it.
+- **The site does not scroll-snap, and should not start again.** The home page
+  once snapped to each section's top with `proximity`. Every version of it
+  failed somewhere a green suite could not see: snapping on the section trapped
+  the footer below a tall catalogue (an oversized snap area holds the scroller
+  inside it, whatever the strictness); snapping on a zero-height marker scrolled
+  the masthead off the 404; and on a Linux touchpad, where a scroll gesture
+  often never reports that it ended, the snap waited for the next click and
+  dragged the page to the nearest section top — moving the footer links out
+  from under the pointer as they were clicked. When a snap runs is the
+  browser's call, not the page's. `screenful` keeps the full-screen, centred
+  sections; `tests/e2e/snap.spec.ts` asserts that nothing offers a snap point.
 - **Frontmatter does not go through the MDX pipeline.** Note bodies get
   `remark-smartypants`; a title, standfirst or catalogue summary does not, so
   they shipped typewriter apostrophes directly above prose that had real ones.
@@ -208,13 +207,14 @@ browser chrome.
   has already run it. "Sets the theme with the framework JavaScript blocked"
   is the test that actually holds the line; do not delete it.
 - **A `screenful` that sits under the header needs `--screen-offset`.** Without
-  it the page is exactly one header taller than the viewport and the snap marker
-  at the section's top edge pulls the masthead off-screen the moment the scroll
-  settles. The hero and the 404 both carry
+  it the page is exactly one header taller than the viewport, so the first
+  screen spills past the fold and a one-sentence 404 scrolls. The hero and the
+  404 both carry
   `[--screen-offset:var(--header-block)]` for this reason; a section further
   down the page does not.
 - **Seed draft content before trusting any scroll or layout behaviour.** With
-  one catalogue row every section fits a screen and the bug above is invisible.
+  one catalogue row every section fits a screen and layout bugs that only
+  appear on a tall page are invisible.
   `draft: true` builds in `pnpm dev` and is excluded from `pnpm build` and
   `check:content`, so seed files can never reach production.
 - **A release is addressed by `project-version`, never by its filename.**
