@@ -4,6 +4,7 @@ summary: An expense tracker that keeps its mouth shut. Every record lives in one
 magnitude: 2
 kind: app
 firstLight: 2026-08-10
+updated: 2026-11-05
 url: https://peace.merope.dev
 repo: https://github.com/ahmedsaed/Peace
 ---

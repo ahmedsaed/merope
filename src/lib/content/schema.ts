@@ -93,6 +93,13 @@ export const projectSchema = z.object({
   kind: z.enum(['app', 'tool', 'library', 'service', 'experiment']),
   /** Launch date. Astronomers call a telescope's first real image "first light". */
   firstLight: isoDate,
+  /**
+   * When this entry's own words or pictures last changed. Set it when you edit
+   * the page: it is the date the sitemap gives search engines, and a page
+   * whose date never moves is a page they stop re-reading. A release does not
+   * need it — the project page lists releases and dates itself by the newest.
+   */
+  updated: isoDate.optional(),
   /** Live site, usually a subdomain of merope.dev. */
   url: z.string().url().optional(),
   repo: z.string().url().optional(),

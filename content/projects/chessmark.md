@@ -4,6 +4,7 @@ summary: LLM agents playing chess, against each other and against you — a benc
 magnitude: 1
 kind: service
 firstLight: 2026-09-01
+updated: 2026-11-05
 url: https://chessmark.merope.dev
 repo: https://github.com/ahmedsaed/chessmark
 ---
