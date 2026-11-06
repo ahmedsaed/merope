@@ -269,6 +269,12 @@ browser chrome.
   `added` on `/changelog` and six § links that scrolled the reader to a
   different release. `Markdown` takes `anchors={false}` for exactly this, and
   `tests/anchors.test.ts` asserts no page ships an id twice.
+- **Editing a project page means setting its `updated`.** The sitemap's
+  `lastModified` comes from content, never from the build: a project page is
+  dated by the later of `updated` (or `firstLight`) and its newest release.
+  It used to be the launch date for projects and the build time for
+  `/studio` and `/changelog`, which tells Google the field is noise and gets
+  it ignored site-wide. `tests/sitemap.test.ts` holds both halves.
 - **The nav renders `liveNav()`, not `NAV`.** Every item carries a `live` flag;
   flipping it is the last step of building a route. The site never ships a dead
   link or a stub page.

@@ -4,6 +4,7 @@ summary: Five photos in, a 3D-printable lithophane lamp out — four sides, a to
 magnitude: 4
 kind: tool
 firstLight: 2026-10-27
+updated: 2026-11-05
 url: https://lithophane-maker.merope.dev
 repo: https://github.com/ahmedsaed/lithophane-maker
 ---

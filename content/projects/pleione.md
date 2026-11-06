@@ -4,6 +4,7 @@ summary: An IPTV player for LG and Samsung TVs. Your own playlists and accounts,
 magnitude: 3
 kind: app
 firstLight: 2026-11-01
+updated: 2026-11-05
 url: https://pleione.merope.dev
 repo: https://github.com/ahmedsaed/pleione
 ---
